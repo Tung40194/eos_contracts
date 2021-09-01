@@ -55,12 +55,8 @@ void donocamp::transfer(name from, name to, asset quantity, string memo) {
     check(quantity.amount > 0, "ERR::VERIFY_FAILED::must transfer positive quantity");
     check(get_balance("eosio.token"_n, get_self(), system_core_symbol.code()) >= min_active_contract, "ERR::VERIFY_FAILED::Deposit at least 10 CAT to active creating commnity feature");
 
-    if (quantity.symbol == system_core_symbol && community_str != "deposit_core_symbol")
+    if (quantity.symbol == system_core_symbol)
     {
-        name community_acc = name{community_str};
-        check(verify_community_account_input(community_acc), "community account name is invalid");
-        check(!is_account(community_acc), "ERR::VERIFY_FAILED::account already exist");
-
         const asset ram_fee = convertbytes2cat(init_ram_amount);
         check(quantity >= init_cpu + init_net + ram_fee, "ERR::VERIFY_FAILED::insuffent balance to create new account");
         eosio::print("\n###quantity: ", quantity);
