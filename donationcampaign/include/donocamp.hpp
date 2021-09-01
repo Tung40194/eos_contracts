@@ -30,7 +30,7 @@ public:
     void transfer(name from, name to, asset quantity, string memo);
     //void transfertopt(name participant, asset quantity, string memo);
 
-    ACTION dummy(int i, string memo);
+    ACTION dummy(name test);
     /*
 	* global singelton table, used for position id building
 	* Scope: self
