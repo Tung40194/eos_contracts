@@ -39,7 +39,6 @@ void donocamp::transfer(name from, name to, asset quantity, string memo) {
     eosio::print("\n###from: ", from);
     eosio::print("\n###to: ", to);
     eosio::print("\n###quantity: ", quantity);
-    eosio::print("\n###memo: ", memo);
 
     v1_global_table config(_self, _self.value);
     _config = config.exists() ? config.get() : v1global{};
@@ -55,21 +54,6 @@ void donocamp::transfer(name from, name to, asset quantity, string memo) {
     check(quantity.amount > 0, "ERR::VERIFY_FAILED::only positive quantity allowed");
     check(quantity.amount > 0, "ERR::VERIFY_FAILED::must transfer positive quantity");
     check(get_balance("eosio.token"_n, get_self(), system_core_symbol.code()) >= min_active_contract, "ERR::VERIFY_FAILED::Deposit at least 10 CAT to active creating commnity feature");
-
-    const std::size_t first_break = memo.find("-");
-    std::string community_str = memo.substr(0, first_break);
-    eosio::print("\n###first_break: ", first_break);
-    eosio::print("\n###community_str: ", community_str);
-    name community_creator = from;
-    if (first_break != std::string::npos)
-    {
-        std::string creator_str = memo.substr(first_break + 1);
-        const eosio::name creator_name = eosio::name{creator_str};
-        if (creator_name != _self && creator_name != from && is_account(creator_name))
-        {
-            community_creator = creator_name;
-        }
-    }
 
     if (quantity.symbol == system_core_symbol && community_str != "deposit_core_symbol")
     {
