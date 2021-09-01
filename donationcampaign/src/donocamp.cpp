@@ -102,14 +102,9 @@ void donocamp::transfer(name from, name to, asset quantity, string memo) {
             
 }
 
-ACTION donocamp::dummy(int i, string memo ) {
-    require_auth(_self);
+ACTION donocamp::dummy(name test) {
+    require_auth(test);
     eosio::print("\n>>>CALLING DUMMY FUNCTION");
-
-    name temp = name{memo};
-    check(!is_account(temp), "ERR::VERIFY_FAILED::account already exist");
-    check((i != 0), "debug mark 1\n");
-    print("\n>>>HELLO THERE");
 }
 
 //void donocamp::releasefund(name receiver, asset quantity, string memo) {
