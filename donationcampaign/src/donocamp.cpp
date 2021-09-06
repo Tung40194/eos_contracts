@@ -65,13 +65,13 @@ ACTION donocamp::refund() {
 
 ACTION donocamp::test(name in) {
     require_auth(in);
-
-    // action(
-    //     permission_level{_self, "active"_n},
-    //     "governance23"_n,
-    //     "dummy"_n,
-    //     std::make_tuple()
-    //     ).send();
+    
+    action(
+        permission_level{_self, "active"_n},
+        "governance23"_n,
+        "dummy"_n,
+        std::make_tuple()
+        ).send();
 }
 
 //void donocamp::releasefund(name receiver, asset quantity, string memo) {
@@ -101,4 +101,4 @@ ACTION donocamp::test(name in) {
         }                                                                                                        \
     }
 
-EOSIO_ABI_CUSTOM(donocamp, (transfer))
+EOSIO_ABI_CUSTOM(donocamp, (transfer)(claim)(refund)(test))
