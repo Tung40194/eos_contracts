@@ -7,8 +7,8 @@ using namespace eosio;
 using namespace std;
 
 CONTRACT donocamp : public contract {
+private:
 
-    bool verify_community_account_input(name community_account);
     asset convertbytes2cat(uint32_t bytes);
 
     TABLE account {
@@ -24,13 +24,16 @@ CONTRACT donocamp : public contract {
     }
 
 public:
-    // constructor
     donocamp(eosio::name receiver, eosio::name code, datastream<const char *> ds) : contract(receiver, code, ds) {}
 
     void transfer(name from, name to, asset quantity, string memo);
-    //void transfertopt(name participant, asset quantity, string memo);
+
+    ACTION claim();
+
+    ACTION refund();
 
     ACTION dummy(name test);
+    
     /*
 	* global singelton table, used for position id building
 	* Scope: self
@@ -38,11 +41,6 @@ public:
 	TABLE v1global {
 		  
 		v1global(){}
-		uint64_t posproposed_id	= 0;
-        name community_creator_name = "c"_n;
-        name cryptobadge_contract_name = "badge"_n;
-        name token_contract_name = "tiger.token"_n;
-        name ram_payer_name = "ram.can"_n;
         symbol core_symbol = symbol(symbol_code("CAT"), 4);
         uint64_t init_ram_amount = 10*1024;
         // init stake net for new community account
@@ -52,11 +50,6 @@ public:
         asset min_active_contract = asset(10'0000, this->core_symbol);
 
 		EOSLIB_SERIALIZE( v1global, 
-            (posproposed_id)
-            (community_creator_name)
-            (cryptobadge_contract_name)
-            (token_contract_name)
-            (ram_payer_name)
             (core_symbol)
             (init_ram_amount)
             (init_net)

@@ -3,22 +3,6 @@
 const symbol ramcore_symbol = symbol(symbol_code("RAMCORE"), 4);
 const symbol ram_symbol = symbol(symbol_code("RAM"), 0);
 
-bool donocamp::verify_community_account_input(name community_account) {
-    if (community_account.length() < 6)
-        return false;
-
-    v1_global_table config(_self, _self.value);
-    _config = config.exists() ? config.get() : v1global{};
-    const name community_creator_name = _config.community_creator_name;
-
-    if (community_account.suffix() != community_creator_name)
-    {
-        return false;
-    }
-
-    return true;
-}
-
 asset donocamp::convertbytes2cat(uint32_t bytes) {
     v1_global_table config(_self, _self.value);
     _config = config.exists() ? config.get() : v1global{};
@@ -36,9 +20,6 @@ void donocamp::transfer(name from, name to, asset quantity, string memo) {
     {
         return;
     }
-    eosio::print("\n###from: ", from);
-    eosio::print("\n###to: ", to);
-    eosio::print("\n###quantity: ", quantity);
 
     v1_global_table config(_self, _self.value);
     _config = config.exists() ? config.get() : v1global{};
@@ -48,7 +29,7 @@ void donocamp::transfer(name from, name to, asset quantity, string memo) {
     const asset init_cpu = _config.init_cpu;
     const asset init_net = _config.init_net;
 
-    print("\nbalance: ", get_balance("eosio.token"_n, get_self(), system_core_symbol.code()));
+    print("\n>>>balance: ", get_balance("eosio.token"_n, get_self(), system_core_symbol.code()));
     check(to == _self, "ERR::VERIFY_FAILED::contract is not involved in this transfer");
     check(quantity.symbol.is_valid(), "ERR::VERIFY_FAILED::invalid quantity");
     check(quantity.amount > 0, "ERR::VERIFY_FAILED::only positive quantity allowed");
@@ -59,18 +40,10 @@ void donocamp::transfer(name from, name to, asset quantity, string memo) {
     {
         const asset ram_fee = convertbytes2cat(init_ram_amount);
         check(quantity >= init_cpu + init_net + ram_fee, "ERR::VERIFY_FAILED::insuffent balance to create new account");
-        eosio::print("\n###quantity: ", quantity);
-        eosio::print("\n###init_cpu: ", init_cpu);
-        eosio::print("\n###init_net: ", init_net);
-        eosio::print("\n###ram_fee: ", ram_fee);
         const asset remain_balance = quantity - init_cpu - init_net - ram_fee;
 
         if (remain_balance.amount > 0)
         {
-            eosio::print("\n###eosio::transfer with the folowing params");
-            eosio::print("\n###_self: ", _self);
-            eosio::print("\n###from: ", from);
-            eosio::print("\n###remain_balance: ", remain_balance);
             action(
                 permission_level{_self, "active"_n},
                 "eosio.token"_n,
@@ -83,14 +56,22 @@ void donocamp::transfer(name from, name to, asset quantity, string memo) {
                 permission_level{_self, "active"_n},
                 get_self(),
                 "dummy"_n,
-                std::make_tuple("donocamp"_n))
-                .send();
+                std::make_tuple("tungpham"_n)
+              ).send();
     }
             
 }
 
+ACTION donocamp::claim() {
+    
+}
+
+ACTION donocamp::refund() {
+    
+}
+
 ACTION donocamp::dummy(name test) {
-    //require_auth(test);
+    require_auth(test);
     eosio::print("\n>>>CALLING DUMMY FUNCTION");
 }
 
