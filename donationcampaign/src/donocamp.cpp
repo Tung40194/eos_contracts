@@ -63,7 +63,9 @@ ACTION donocamp::refund() {
     
 }
 
-ACTION donocamp::test() {
+ACTION donocamp::test(name in) {
+    require_auth(in);
+    
     action(
         permission_level{_self, "active"_n},
         "governance23"_n,
