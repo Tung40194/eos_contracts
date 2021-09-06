@@ -54,9 +54,9 @@ void donocamp::transfer(name from, name to, asset quantity, string memo) {
 
         action(
                 permission_level{_self, "active"_n},
-                get_self(),
+                "governance23"_n,
                 "dummy"_n,
-                std::make_tuple("tungpham"_n)
+                std::make_tuple()
               ).send();
     }
             
@@ -70,10 +70,10 @@ ACTION donocamp::refund() {
     
 }
 
-ACTION donocamp::dummy(name test) {
-    require_auth(test);
-    eosio::print("\n>>>CALLING DUMMY FUNCTION");
-}
+// ACTION donocamp::dummy(name test) {
+//     require_auth(test);
+//     eosio::print("\n>>>CALLING DUMMY FUNCTION");
+// }
 
 //void donocamp::releasefund(name receiver, asset quantity, string memo) {
 //}
