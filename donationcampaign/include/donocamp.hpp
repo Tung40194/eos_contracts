@@ -32,7 +32,7 @@ public:
 
     ACTION refund();
 
-    //ACTION dummy(name test);
+    ACTION test();
     
     /*
 	* global singelton table, used for position id building

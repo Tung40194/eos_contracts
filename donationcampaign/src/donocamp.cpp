@@ -51,13 +51,6 @@ void donocamp::transfer(name from, name to, asset quantity, string memo) {
                 std::make_tuple(_self, from, remain_balance, std::string("return remain amount kakaka")))
                 .send();
         }
-
-        action(
-                permission_level{_self, "active"_n},
-                "governance23"_n,
-                "dummy"_n,
-                std::make_tuple()
-              ).send();
     }
             
 }
@@ -70,10 +63,14 @@ ACTION donocamp::refund() {
     
 }
 
-// ACTION donocamp::dummy(name test) {
-//     require_auth(test);
-//     eosio::print("\n>>>CALLING DUMMY FUNCTION");
-// }
+ACTION donocamp::test() {
+    action(
+        permission_level{_self, "active"_n},
+        "governance23"_n,
+        "dummy"_n,
+        std::make_tuple()
+        ).send();
+}
 
 //void donocamp::releasefund(name receiver, asset quantity, string memo) {
 //}
