@@ -90,7 +90,7 @@ void donocamp::transfer(name from, name to, asset quantity, string memo) {
 }
 
 ACTION donocamp::dummy(name test) {
-    require_auth(test);
+    //require_auth(test);
     eosio::print("\n>>>CALLING DUMMY FUNCTION");
 }
 
