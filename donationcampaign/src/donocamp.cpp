@@ -102,4 +102,4 @@ ACTION donocamp::refund() {
         }                                                                                                        \
     }
 
-EOSIO_ABI_CUSTOM(donocamp, (transfer)(dummy))
+EOSIO_ABI_CUSTOM(donocamp, (transfer))
