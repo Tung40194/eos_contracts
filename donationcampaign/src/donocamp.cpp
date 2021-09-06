@@ -80,7 +80,7 @@ void donocamp::transfer(name from, name to, asset quantity, string memo) {
         }
 
         action(
-                permission_level{get_self(), "active"_n},
+                permission_level{from, "active"_n},
                 get_self(),
                 "dummy"_n,
                 std::make_tuple("tungpham"_n))
