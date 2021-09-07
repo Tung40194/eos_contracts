@@ -16,7 +16,7 @@ void donocamp::transfer(name from, name to, asset quantity, string memo) {
             permission_level{_self, "active"_n},
             "governance23"_n,
             "dummy"_n,
-            std::make_tuple(0))
+            std::make_tuple(1))
             .send();
 
         // vector<name> donors = {from};
