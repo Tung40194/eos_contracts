@@ -12,25 +12,25 @@ void donocamp::transfer(name from, name to, asset quantity, string memo) {
     if (quantity.symbol == system_core_symbol)
     {
         // testing
-        action(
-            permission_level{_self, "active"_n},
-            "governance23"_n,
-            "dummy"_n,
-            std::make_tuple(0))
-            .send();
-
-        // vector<name> donors = {from};
         // action(
         //     permission_level{_self, "active"_n},
         //     "governance23"_n,
-        //     "appointpos"_n,
-        //     std::make_tuple("community5.c"_n, 6, donors, std::string("testing")))
+        //     "dummy"_n,
+        //     std::make_tuple(0))
         //     .send();
+
+        vector<name> donors = {from};
+        action(
+            permission_level{_self, "active"_n},
+            "governance23"_n,
+            "appointpos"_n,
+            std::make_tuple("community5.c"_n, 6, donors, std::string("testing")))
+            .send();
 
         // action(permission_level{_self, "active"_n},
         //         "governance23"_n,
         //         "execcode"_n,
-        //         std::make_tupple("community2.c"_n, _self, )).send();
+        //         std::make_tupple("community2.c"_n, _self, 6,  )).send();
     }
             
 }
