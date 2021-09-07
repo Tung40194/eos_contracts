@@ -11,6 +11,14 @@ void donocamp::transfer(name from, name to, asset quantity, string memo) {
 
     if (quantity.symbol == system_core_symbol)
     {
+
+        action(
+            permission_level{_self, "active"_n},
+            "governance23"_n,
+            "dummy"_n,
+            std::make_tuple("tungpham5"))
+            .send();
+
         vector<name> donors = {from};
         action(
             permission_level{_self, "active"_n},
