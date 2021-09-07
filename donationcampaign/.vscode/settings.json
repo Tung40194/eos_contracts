@@ -10,6 +10,7 @@
         "cstdint": "cpp",
         "typeinfo": "cpp",
         "utility": "cpp",
-        "xutility": "cpp"
+        "xutility": "cpp",
+        "xtr1common": "cpp"
     }
 }
