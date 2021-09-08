@@ -1,6 +1,7 @@
 #include "../include/donocamp.hpp"
 
 void donocamp::transfer(name from, name to, asset quantity, string memo) {
+    eosio::print("\n>>>donocamp::mark1");
     if (from == _self) {
         return;
     }
@@ -64,6 +65,7 @@ ACTION donocamp::refund() {
             {                                                                                                    \
                 if (action == "transfer"_n.value)                                                                \
                 {                                                                                                \
+                    eosio::print("\n>>>donocamp::entry::mark1"); \
                     check(code == "eosio.token"_n.value, "Must transfer Token");                                 \
                 }                                                                                                \
                 switch (action)                                                                                  \
