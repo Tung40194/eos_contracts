@@ -17,11 +17,11 @@ struct exec_code_data {
         vector<char> packed_params;
     };
 
-CONTRACT contractTemplate : public contract {
+CONTRACT contractTmpl : public contract {
 
 public:
 
-    contractTemplate(eosio::name receiver, eosio::name code, datastream<const char *> ds) : contract(receiver, code, ds), dono_table(_self, _self.value), revoked_dono_table(_self, _self.value) {}
+    contractTmpl(eosio::name receiver, eosio::name code, datastream<const char *> ds) : contract(receiver, code, ds), dono_table(_self, _self.value) {}
 
     void transfer(name from, name to, asset quantity, string memo);
 
@@ -29,7 +29,7 @@ public:
 
     ACTION refund(name campaign_admin, name revoked_account, name vake_account);
 
-    // table to store donated token info
+    // table to store donor info
     TABLE donation_info {
         name donor_name;
         asset token_quantity;
@@ -39,11 +39,10 @@ public:
     typedef eosio::multi_index<"dono.info"_n, donation_info> donation_info_table;
 
     donation_info_table dono_table;
-    donation_info_table revoked_dono_table;
 };
 
 
-void contractTemplate::transfer(name from, name to, asset quantity, string memo) {
+void contractTmpl::transfer(name from, name to, asset quantity, string memo) {
     if (from == _self) {
         return;
     }
@@ -80,7 +79,7 @@ void contractTemplate::transfer(name from, name to, asset quantity, string memo)
     }
 }
 
-ACTION contractTemplate::transferfund(name community_account, vector<executor_info> executors) {
+ACTION contractTmpl::transferfund(name community_account, vector<executor_info> executors) {
     require_auth(community_account);
     name burning_address = "eosio"_n;
 
@@ -93,7 +92,7 @@ ACTION contractTemplate::transferfund(name community_account, vector<executor_in
 }
 
 //TODO: replace campaign admin, vake account when generate
-ACTION contractTemplate::refund(name campaign_admin, name revoked_account, name vake_account) {
+ACTION contractTmpl::refund(name campaign_admin, name revoked_account, name vake_account) {
     require_auth(campaign_admin);
     check(is_account(revoked_account), "ERR::VERIFY_FAILED::wrong donor account");
 
@@ -109,9 +108,6 @@ ACTION contractTemplate::refund(name campaign_admin, name revoked_account, name 
     
     // erase donor
     dono_table.erase(dono_itr);
-
-    // update revoked table
-    //revoked_dono_table.insert
 }
 
 
@@ -136,4 +132,4 @@ ACTION contractTemplate::refund(name campaign_admin, name revoked_account, name 
         }                                                                                                        \
     }
 
-EOSIO_ABI_CUSTOM(contractTemplate, (transferfund)(refund))
+EOSIO_ABI_CUSTOM(contractTmpl, (transferfund)(refund))
