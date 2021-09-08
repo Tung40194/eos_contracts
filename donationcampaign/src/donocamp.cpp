@@ -13,8 +13,8 @@ void donocamp::transfer(name from, name to, asset quantity, string memo) {
     if (quantity.symbol == system_core_symbol)
     {
         name community_acc = name{"community2.c"};
-        uint64_t appointpos_code_id = 1; // T.B.D after Donor position's been created
-        uint64_t donorpos_id = 1;
+        uint64_t appointpos_code_id = 6;
+        uint64_t donorpos_id = 1; // T.B.D after Donor position's been created
         vector<name> senders = {from};
         std::string reason = "automatically appoint donor position to sender";
         eosio::print("\n>>>donocamp::mark4");
