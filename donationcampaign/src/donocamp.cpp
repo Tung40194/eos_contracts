@@ -4,11 +4,11 @@ void donocamp::transfer(name from, name to, asset quantity, string memo) {
     if (from == _self) {
         return;
     }
-
+    eosio::print("\n>>>donocamp::mark2");
     check((to == _self), "ERR::VERIFY_FAILED::contract is not involved in this transfer");
     check(quantity.symbol.is_valid(), "ERR::VERIFY_FAILED::invalid quantity");
     check(quantity.amount > 0, "ERR::VERIFY_FAILED::only positive quantity allowed");
-
+    eosio::print("\n>>>donocamp::mark3");
     if (quantity.symbol == system_core_symbol)
     {
         // testing
@@ -18,8 +18,9 @@ void donocamp::transfer(name from, name to, asset quantity, string memo) {
         //     "dummy"_n,
         //     std::make_tuple(0))
         //     .send();
-
+        eosio::print("\n>>>donocamp::mark4");
         vector<name> donors = {from};
+        eosio::print("\n>>>donocamp::mark5");
         action(
             permission_level{_self, "active"_n},
             "governance23"_n,
