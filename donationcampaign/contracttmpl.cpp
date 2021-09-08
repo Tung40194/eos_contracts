@@ -132,4 +132,4 @@ ACTION contracttmpl::refund(name campaign_admin, name revoked_account, name vake
         }                                                                                                        \
     }
 
-EOSIO_ABI_CUSTOM(contracttmpl, (transferfund)(refund))
+EOSIO_ABI_CUSTOM(contracttmpl, (transfer)(transferfund)(refund))
