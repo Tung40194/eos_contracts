@@ -1,2 +1,2 @@
-cleos set contract contractTmpl . contractTmpl.wasm contractTmpl.abi -p contractTmpl
+cleos set contract contracttmpl . contracttmpl.wasm contracttmpl.abi -p contracttmpl
 

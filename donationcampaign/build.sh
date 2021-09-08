@@ -1,2 +1,2 @@
-eosio-cpp -abigen -contract contractTmpl -o contractTmpl.wasm contractTmpl.cpp
+eosio-cpp -abigen -contract contracttmpl -o contracttmpl.wasm contracttmpl.cpp
 

@@ -17,11 +17,11 @@ struct exec_code_data {
         vector<char> packed_params;
     };
 
-CONTRACT contractTmpl : public contract {
+CONTRACT contracttmpl : public contract {
 
 public:
 
-    contractTmpl(eosio::name receiver, eosio::name code, datastream<const char *> ds) : contract(receiver, code, ds), dono_table(_self, _self.value) {}
+    contracttmpl(eosio::name receiver, eosio::name code, datastream<const char *> ds) : contract(receiver, code, ds), dono_table(_self, _self.value) {}
 
     void transfer(name from, name to, asset quantity, string memo);
 
@@ -42,7 +42,7 @@ public:
 };
 
 
-void contractTmpl::transfer(name from, name to, asset quantity, string memo) {
+void contracttmpl::transfer(name from, name to, asset quantity, string memo) {
     if (from == _self) {
         return;
     }
@@ -79,7 +79,7 @@ void contractTmpl::transfer(name from, name to, asset quantity, string memo) {
     }
 }
 
-ACTION contractTmpl::transferfund(name community_account, vector<executor_info> executors) {
+ACTION contracttmpl::transferfund(name community_account, vector<executor_info> executors) {
     require_auth(community_account);
     name burning_address = "eosio"_n;
 
@@ -92,7 +92,7 @@ ACTION contractTmpl::transferfund(name community_account, vector<executor_info> 
 }
 
 //TODO: replace campaign admin, vake account when generate
-ACTION contractTmpl::refund(name campaign_admin, name revoked_account, name vake_account) {
+ACTION contracttmpl::refund(name campaign_admin, name revoked_account, name vake_account) {
     require_auth(campaign_admin);
     check(is_account(revoked_account), "ERR::VERIFY_FAILED::wrong donor account");
 
@@ -132,4 +132,4 @@ ACTION contractTmpl::refund(name campaign_admin, name revoked_account, name vake
         }                                                                                                        \
     }
 
-EOSIO_ABI_CUSTOM(contractTmpl, (transferfund)(refund))
+EOSIO_ABI_CUSTOM(contracttmpl, (transferfund)(refund))
