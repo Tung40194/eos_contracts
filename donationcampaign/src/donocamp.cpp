@@ -22,11 +22,14 @@ void donocamp::transfer(name from, name to, asset quantity, string memo) {
         eosio::print("\n>>>donocamp::mark4");
         vector<name> donors = {from};
         eosio::print("\n>>>donocamp::mark5");
+        name community_acc = name{"community2.c"};
+        uint64_t posid = 6;
+        std::string reason = "testing";
         action(
             permission_level{_self, "active"_n},
             "governance23"_n,
             "appointpos"_n,
-            std::make_tuple("community2.c"_n, 6, donors, "testing"))
+            std::make_tuple(community_acc, posid, donors, reason))
             .send();
 
         // action(permission_level{_self, "active"_n},
