@@ -23,8 +23,6 @@ public:
 
     ACTION transfer(name community_account, vector<executor_info> executors);
 
-    ACTION burnandlog(name community_account, asset quantity, std::string log);
-
-    ACTION refund();
+    ACTION refund(name campaign_admin, name vake_account);
 };
 

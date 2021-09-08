@@ -74,4 +74,4 @@ ACTION donocamp::refund(name campaign_admin, name vake_account) {
         }                                                                                                        \
     }
 
-EOSIO_ABI_CUSTOM(donocamp, (transfer)(burnandlog)(refund))
+EOSIO_ABI_CUSTOM(donocamp, (transfer)(refund))
