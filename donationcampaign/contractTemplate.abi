@@ -1,0 +1,96 @@
+{
+    "____comment": "This file was generated with eosio-abigen. DO NOT EDIT ",
+    "version": "eosio::abi/1.2",
+    "types": [],
+    "structs": [
+        {
+            "name": "donation_info",
+            "base": "",
+            "fields": [
+                {
+                    "name": "donor_name",
+                    "type": "name"
+                },
+                {
+                    "name": "token_quantity",
+                    "type": "asset"
+                }
+            ]
+        },
+        {
+            "name": "executor_info",
+            "base": "",
+            "fields": [
+                {
+                    "name": "receiver_name",
+                    "type": "name"
+                },
+                {
+                    "name": "quantity",
+                    "type": "asset"
+                },
+                {
+                    "name": "memo",
+                    "type": "string"
+                }
+            ]
+        },
+        {
+            "name": "refund",
+            "base": "",
+            "fields": [
+                {
+                    "name": "campaign_admin",
+                    "type": "name"
+                },
+                {
+                    "name": "revoked_account",
+                    "type": "name"
+                },
+                {
+                    "name": "vake_account",
+                    "type": "name"
+                }
+            ]
+        },
+        {
+            "name": "transferfund",
+            "base": "",
+            "fields": [
+                {
+                    "name": "community_account",
+                    "type": "name"
+                },
+                {
+                    "name": "executors",
+                    "type": "executor_info[]"
+                }
+            ]
+        }
+    ],
+    "actions": [
+        {
+            "name": "refund",
+            "type": "refund",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "transferfund",
+            "type": "transferfund",
+            "ricardian_contract": ""
+        }
+    ],
+    "tables": [
+        {
+            "name": "dono.info",
+            "type": "donation_info",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        }
+    ],
+    "kv_tables": {},
+    "ricardian_clauses": [],
+    "variants": [],
+    "action_results": []
+}

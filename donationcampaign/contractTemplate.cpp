@@ -5,11 +5,17 @@ using namespace eosio;
 using namespace std;
 
 const symbol system_core_symbol = symbol(symbol_code("CAT"), 4);
+
 struct executor_info {
     name receiver_name;
     asset quantity;
     std::string memo;
 };
+
+struct exec_code_data {
+        name code_action;
+        vector<char> packed_params;
+    };
 
 CONTRACT contractTemplate : public contract {
 
@@ -24,8 +30,7 @@ public:
     ACTION refund(name campaign_admin, name revoked_account, name vake_account);
 
     // table to store donated token info
-    TABLE donation_info
-    {
+    TABLE donation_info {
         name donor_name;
         asset token_quantity;
         uint64_t primary_key() const { return donor_name.value; }
@@ -56,16 +61,12 @@ void contractTemplate::transfer(name from, name to, asset quantity, string memo)
 
         // TODO: replace when community account's created
         name community_acc = name{"community2.c"};
-        uint64_t appointpos_code_id = 6;
         // TODO: replace when Donor position's created
         uint64_t donorpos_id = 1;
         vector<name> sender = {from};
         std::string reason = "appoint donor position to sender";
+        uint64_t appointpos_code_id = 6;
         
-        struct exec_code_data {
-            name code_action;
-            vector<char> packed_params;
-        };
         exec_code_data exec_code;
         exec_code.code_action = name{"appointpos"};
         exec_code.packed_params = eosio::pack(std::make_tuple(community_acc, donorpos_id, sender, reason));
