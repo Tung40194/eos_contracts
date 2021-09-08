@@ -21,6 +21,8 @@ public:
 
     void transfer(name from, name to, asset quantity, string memo);
 
+    ACTION transfer(name community_account, vector<executor_info> executors);
+
     ACTION burnandlog(name community_account, asset quantity, std::string log);
 
     ACTION refund();
