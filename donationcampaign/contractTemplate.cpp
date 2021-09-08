@@ -1,6 +1,44 @@
-#include "../include/donocamp.hpp"
+#include <eosio/eosio.hpp>
+#include <eosio/asset.hpp>
 
-void donocamp::transfer(name from, name to, asset quantity, string memo) {
+using namespace eosio;
+using namespace std;
+
+const symbol system_core_symbol = symbol(symbol_code("CAT"), 4);
+struct executor_info {
+    name receiver_name;
+    asset quantity;
+    std::string memo;
+};
+
+CONTRACT contractTemplate : public contract {
+
+public:
+
+    contractTemplate(eosio::name receiver, eosio::name code, datastream<const char *> ds) : contract(receiver, code, ds), dono_table(_self, _self.value), revoked_dono_table(_self, _self.value) {}
+
+    void transfer(name from, name to, asset quantity, string memo);
+
+    ACTION transferfund(name community_account, vector<executor_info> executors);
+
+    ACTION refund(name campaign_admin, name revoked_account, name vake_account);
+
+    // table to store donated token info
+    TABLE donation_info
+    {
+        name donor_name;
+        asset token_quantity;
+        uint64_t primary_key() const { return donor_name.value; }
+        EOSLIB_SERIALIZE( donation_info, (donor_name)(token_quantity));
+    };
+    typedef eosio::multi_index<"dono.info"_n, donation_info> donation_info_table;
+
+    donation_info_table dono_table;
+    donation_info_table revoked_dono_table;
+};
+
+
+void contractTemplate::transfer(name from, name to, asset quantity, string memo) {
     if (from == _self) {
         return;
     }
@@ -10,9 +48,17 @@ void donocamp::transfer(name from, name to, asset quantity, string memo) {
     check(quantity.amount > 0, "ERR::VERIFY_FAILED::only positive quantity allowed");
     
     if (quantity.symbol == system_core_symbol) {
-        name community_acc = name{"community2.c"}; // TODO: replace when community account's created
+        // record donation info for donor refund if revoked
+        dono_table.emplace(get_self(), [&](auto &row) {
+            row.donor_name = name{dono_table.available_primary_key()};
+            row.token_quantity = quantity;
+        });
+
+        // TODO: replace when community account's created
+        name community_acc = name{"community2.c"};
         uint64_t appointpos_code_id = 6;
-        uint64_t donorpos_id = 1; // TODO: replace when Donor position's created
+        // TODO: replace when Donor position's created
+        uint64_t donorpos_id = 1;
         vector<name> sender = {from};
         std::string reason = "appoint donor position to sender";
         
@@ -33,7 +79,7 @@ void donocamp::transfer(name from, name to, asset quantity, string memo) {
     }
 }
 
-ACTION donocamp::transferfund(name community_account, vector<executor_info> executors) {
+ACTION contractTemplate::transferfund(name community_account, vector<executor_info> executors) {
     require_auth(community_account);
     name burning_address = "eosio"_n;
 
@@ -45,13 +91,28 @@ ACTION donocamp::transferfund(name community_account, vector<executor_info> exec
     }
 }
 
-ACTION donocamp::refund(name campaign_admin, name vake_account) {
-    // require_auth(campaign_admin);
-    // action( permission_level{_self, "active"_n},
-    //         "eosio.token"_n,
-    //         "transfer"_n,
-    //         std::make_tuple(_self, vake_account, quantity, std::string("refund to revoked account"))).send();
+//TODO: replace campaign admin, vake account when generate
+ACTION contractTemplate::refund(name campaign_admin, name revoked_account, name vake_account) {
+    require_auth(campaign_admin);
+    check(is_account(revoked_account), "ERR::VERIFY_FAILED::wrong donor account");
+
+    auto dono_itr = dono_table.find(revoked_account.value);
+    check(dono_itr != dono_table.end(), "ERR::VERIFY_FAILED::account has not donated");
+
+    asset refunded_quantity = dono_itr->token_quantity;
+    
+    action( permission_level{_self, "active"_n},
+            "eosio.token"_n,
+            "transfer"_n,
+            std::make_tuple(_self, vake_account, refunded_quantity, std::string("refund to revoked account"))).send();
+    
+    // erase donor
+    dono_table.erase(dono_itr);
+
+    // update revoked table
+    //revoked_dono_table.insert
 }
+
 
 #define EOSIO_ABI_CUSTOM(TYPE, MEMBERS)                                                                          \
     extern "C"                                                                                                   \
@@ -74,4 +135,4 @@ ACTION donocamp::refund(name campaign_admin, name vake_account) {
         }                                                                                                        \
     }
 
-EOSIO_ABI_CUSTOM(donocamp, (transferfund)(refund))
+EOSIO_ABI_CUSTOM(contractTemplate, (transferfund)(refund))

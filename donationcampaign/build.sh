@@ -1,2 +1,2 @@
-eosio-cpp -abigen -I include -contract donocamp -o donocamp.wasm src/donocamp.cpp
+eosio-cpp -abigen -contract contractTemplate -o contractTemplate.wasm contractTemplate.cpp
 
