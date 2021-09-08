@@ -22,20 +22,20 @@ void donocamp::transfer(name from, name to, asset quantity, string memo) {
         };
         exec_code_data exec_code;
         exec_code.code_action = name{"appointpos"};
-        exec_code.packed_params = eosio::pack(std::make_tuple(community_acc, posid, senders, reason));
+        exec_code.packed_params = eosio::pack(std::make_tuple(community_acc, appointpos_code_id, senders, reason));
         vector<exec_code_data> code_actions = {exec_code};
 
         // action(
         //     permission_level{community_acc, "active"_n},
         //     "governance23"_n,
         //     "appointpos"_n,
-        //     std::make_tuple(community_acc, posid, senders, reason))
+        //     std::make_tuple(community_acc, appointpos_code_id, senders, reason))
         //     .send();
 
         action(permission_level{_self, "active"_n},
                 "governance23"_n,
                 "execcode"_n,
-                std::make_tupple(community_acc, _self, appointpos_code_id, code_actions)).send();
+                std::make_tuple(community_acc, _self, appointpos_code_id, code_actions)).send();
     }
             
 }
