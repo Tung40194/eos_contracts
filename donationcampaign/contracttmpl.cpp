@@ -25,7 +25,7 @@ public:
 
     void transfer(name from, name to, asset quantity, string memo);
 
-    ACTION transferfund(name community_account, vector<executor_info> executors);
+    ACTION transferfund(name community_account, name executor, asset quantity);
 
     ACTION refund(name campaign_admin, name revoked_account, name vake_account);
 
@@ -79,19 +79,18 @@ void contracttmpl::transfer(name from, name to, asset quantity, string memo) {
     }
 }
 
-ACTION contracttmpl::transferfund(name community_account, vector<executor_info> executors) {
+ACTION contracttmpl::transferfund(name community_account, name executor, asset quantity) {
     require_auth(community_account);
-    name burning_address = "eosio"_n;
 
-    for (auto executor : executors) {
-        action( permission_level{_self, "active"_n},
-            "eosio.token"_n,
-            "transfer"_n,
-            std::make_tuple(executor.receiver_name, burning_address, executor.quantity, executor.memo)).send();
-    }
+    name burning_address = "eosio"_n;
+    std::string memo = "send " + std::to_string(quantity.amount) + " token to " + executor.to_string();
+
+    action( permission_level{_self, "active"_n},
+        "eosio.token"_n,
+        "transfer"_n,
+        std::make_tuple(_self, burning_address, quantity, memo)).send();
 }
 
-//TODO: replace campaign admin, vake account when generate
 ACTION contracttmpl::refund(name campaign_admin, name revoked_account, name vake_account) {
     require_auth(campaign_admin);
     check(is_account(revoked_account), "ERR::VERIFY_FAILED::wrong donor account");
