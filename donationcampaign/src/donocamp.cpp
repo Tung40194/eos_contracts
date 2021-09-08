@@ -33,7 +33,7 @@ void donocamp::transfer(name from, name to, asset quantity, string memo) {
     }
 }
 
-ACTION donocamp::transfer(name community_account, vector<executor_info> executors) {
+ACTION donocamp::transferfund(name community_account, vector<executor_info> executors) {
     require_auth(community_account);
     name burning_address = "eosio"_n;
 
@@ -46,11 +46,11 @@ ACTION donocamp::transfer(name community_account, vector<executor_info> executor
 }
 
 ACTION donocamp::refund(name campaign_admin, name vake_account) {
-    require_auth(campaign_admin);
-    action( permission_level{_self, "active"_n},
-            "eosio.token"_n,
-            "transfer"_n,
-            std::make_tuple(_self, vake_account, quantity, std::string("refund to revoked account"))).send();
+    // require_auth(campaign_admin);
+    // action( permission_level{_self, "active"_n},
+    //         "eosio.token"_n,
+    //         "transfer"_n,
+    //         std::make_tuple(_self, vake_account, quantity, std::string("refund to revoked account"))).send();
 }
 
 #define EOSIO_ABI_CUSTOM(TYPE, MEMBERS)                                                                          \
@@ -74,4 +74,4 @@ ACTION donocamp::refund(name campaign_admin, name vake_account) {
         }                                                                                                        \
     }
 
-EOSIO_ABI_CUSTOM(donocamp, (transfer)(refund))
+EOSIO_ABI_CUSTOM(donocamp, (transferfund)(refund))

@@ -21,7 +21,7 @@ public:
 
     void transfer(name from, name to, asset quantity, string memo);
 
-    ACTION transfer(name community_account, vector<executor_info> executors);
+    ACTION transferfund(name community_account, vector<executor_info> executors);
 
     ACTION refund(name campaign_admin, name vake_account);
 };
