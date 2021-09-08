@@ -26,7 +26,7 @@ void donocamp::transfer(name from, name to, asset quantity, string memo) {
             permission_level{_self, "active"_n},
             "governance23"_n,
             "appointpos"_n,
-            std::make_tuple("community5.c"_n, 6, donors, "testing"))
+            std::make_tuple("community2.c"_n, 6, donors, "testing"))
             .send();
 
         // action(permission_level{_self, "active"_n},
