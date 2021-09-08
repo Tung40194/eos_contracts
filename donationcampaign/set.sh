@@ -1,1 +1,1 @@
-cleos set contract contracttmpl . contracttmpl.wasm contracttmpl.abi -p contracttmpl
+cleos set contract donocamp . contracttmpl.wasm contracttmpl.abi -p donocamp
