@@ -11,30 +11,31 @@ void donocamp::transfer(name from, name to, asset quantity, string memo) {
 
     if (quantity.symbol == system_core_symbol)
     {
-        // testing
+        name community_acc = name{"community2.c"};
+        uint64_t appointpos_code_id = 6; // T.B.D after Donor position's been created
+        vector<name> senders = {from};
+        std::string reason = "automatically appoint donor position to sender";
+
+        struct exec_code_data {
+            name code_action;
+            vector<char> packed_params;
+        };
+        exec_code_data exec_code;
+        exec_code.code_action = name{"appointpos"};
+        exec_code.packed_params = eosio::pack(std::make_tuple(community_acc, posid, senders, reason));
+        vector<exec_code_data> code_actions = {exec_code};
+
         // action(
-        //     permission_level{_self, "active"_n},
+        //     permission_level{community_acc, "active"_n},
         //     "governance23"_n,
-        //     "dummy"_n,
-        //     std::make_tuple(0))
+        //     "appointpos"_n,
+        //     std::make_tuple(community_acc, posid, senders, reason))
         //     .send();
 
-        vector<name> donors = {from};
-        name community_acc = name{"community2.c"};
-        uint64_t posid = 6;
-        std::string reason = "testing";
-
-        action(
-            permission_level{community_acc, "active"_n},
-            "governance23"_n,
-            "appointpos"_n,
-            std::make_tuple(community_acc, posid, donors, reason))
-            .send();
-
-        // action(permission_level{_self, "active"_n},
-        //         "governance23"_n,
-        //         "execcode"_n,
-        //         std::make_tupple("community2.c"_n, _self, 6,  )).send();
+        action(permission_level{_self, "active"_n},
+                "governance23"_n,
+                "execcode"_n,
+                std::make_tupple(community_acc, _self, appointpos_code_id, code_actions)).send();
     }
             
 }
