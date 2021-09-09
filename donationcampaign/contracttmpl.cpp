@@ -1,16 +1,12 @@
 #include <eosio/eosio.hpp>
 #include <eosio/asset.hpp>
+#include <eosio/singleton.hpp>
 
 using namespace eosio;
 using namespace std;
 
-const symbol system_core_symbol = symbol(symbol_code("CAT"), 4);
-
-struct executor_info {
-    name receiver_name;
-    asset quantity;
-    std::string memo;
-};
+const symbol system_core_symbol = symbol(symbol_code("ACT"), 4);
+const name issuer_account = "vake.c"_n;
 
 struct exec_code_data {
         name code_action;
@@ -21,13 +17,20 @@ CONTRACT contracttmpl : public contract {
 
 public:
 
-    contracttmpl(eosio::name receiver, eosio::name code, datastream<const char *> ds) : contract(receiver, code, ds), dono_table(_self, _self.value) {}
+    contracttmpl(eosio::name receiver, eosio::name code, datastream<const char *> ds) : 
+        contract(receiver, code, ds), donor_table(_self, _self.value), campaign_table(_self, _self.value) {
+            // constructor
+        }
 
     void transfer(name from, name to, asset quantity, string memo);
 
-    ACTION transferfund(name community_account, name executor, asset quantity);
+    ACTION transferfund(name community_account, asset quantity, string memo);
 
-    ACTION refund(name campaign_admin, name revoked_account, name vake_account);
+    ACTION refund(name community_account, name campaign_admin, name revoked_account);
+
+    ACTION initialize(name community_account, uint64_t donor_position_id, uint64_t start_at, uint64_t funding_end_at, uint64_t end_at);
+
+    ACTION config(name community_account, uint64_t donor_position_id, uint64_t start_at, uint64_t funding_end_at, uint64_t end_at);
 
     // table to store donor info
     TABLE donation_info {
@@ -36,39 +39,92 @@ public:
         uint64_t primary_key() const { return donor_name.value; }
         EOSLIB_SERIALIZE( donation_info, (donor_name)(token_quantity));
     };
-    typedef eosio::multi_index<"dono.info"_n, donation_info> donation_info_table;
+    typedef eosio::multi_index<"donor.info"_n, donation_info> donation_info_table;
 
-    donation_info_table dono_table;
+    // table to store campaign info
+    TABLE campaign_info {
+        name communityAccount = name{};
+        uint64_t donorPositionId = 0;
+        uint64_t startAt = 0;
+        uint64_t fundingEndAt = 0;
+        uint64_t endAt = 0;
+        EOSLIB_SERIALIZE( campaign_info, (communityAccount)(donorPositionId)(startAt)(fundingEndAt)(endAt));
+    };
+    typedef eosio::singleton<"campaign.inf"_n, campaign_info> campaign_info_table;
+
+    // to access Governance designer table
+    // TABLE v1_code
+    // {
+    //     uint64_t code_id;
+    //     name code_name;
+    //     name contract_name;
+    //     vector<name> code_actions;
+    //     uint8_t code_exec_type = ExecutionType::SOLE_DECISION;
+    //     uint8_t amendment_exec_type = ExecutionType::SOLE_DECISION;
+    //     CodeType code_type;
+
+    //     uint64_t primary_key() const { return code_id; }
+    //     uint64_t by_code_name() const { return code_name.value; }
+    //     uint128_t by_reference_id() const { return build_reference_id(code_type.refer_id, code_type.type); }
+
+    //     EOSLIB_SERIALIZE( v1_code, (code_id)(code_name)(contract_name)(code_actions)(code_exec_type)(amendment_exec_type)(code_type));
+    // };
+
+    // typedef eosio::multi_index<"v1.code"_n, v1_code, 
+    //     indexed_by< "by.code.name"_n, const_mem_fun<v1_code, uint64_t, &v1_code::by_code_name>>,
+    //     indexed_by< "by.refer.id"_n, const_mem_fun<v1_code, uint128_t, &v1_code::by_reference_id>>
+    //     > v1_code_table;
+
+    donation_info_table donor_table;
+    campaign_info_table campaign_table;
+    //v1_code_table governance_v1_code;
 };
 
-
 void contracttmpl::transfer(name from, name to, asset quantity, string memo) {
+    auto campaign_info = campaign_table.get();
+    check((campaign_info.startAt <= current_time_point().sec_since_epoch() < campaign_info.fundingEndAt), "ERR::VERIFY_FAILED::not in voting period");
+
     if (from == _self) {
         return;
     }
     
+    // memo fixed format: donate-<donor_name>
+    const std::size_t first_break = memo.find("-");
+    check((first_break != std::string::npos), "ERR::VERIFY_FAILED::un supported memo format");
+    std::string donor_str = memo.substr(first_break + 1);
+    name donor = name{donor_str};
+    require_auth(donor);
+
     check((to == _self), "ERR::VERIFY_FAILED::contract is not involved in this transfer");
     check(quantity.symbol.is_valid(), "ERR::VERIFY_FAILED::invalid quantity");
     check(quantity.amount > 0, "ERR::VERIFY_FAILED::only positive quantity allowed");
     
     if (quantity.symbol == system_core_symbol) {
+
         // record donation info for donor refund if revoked
-        dono_table.emplace(get_self(), [&](auto &row) {
-            row.donor_name = name{dono_table.available_primary_key()};
-            row.token_quantity = quantity;
-        });
+        auto donor_itr = donor_table.find(donor.value);
+        if (donor_itr == donor_table.end()){
+            donor_table.emplace(get_self(), [&](auto &row) {
+                row.donor_name = donor;
+                row.token_quantity = quantity;
+            });
+        } else {
+            donor_table.modify(donor_itr, get_self(), [&](auto& row) {
+                row.token_quantity = row.token_quantity + quantity;
+            });
+        }
 
         // TODO: replace when community account's created
         name community_acc = name{"community2.c"};
         // TODO: replace when Donor position's created
         uint64_t donorpos_id = 1;
-        vector<name> sender = {from};
-        std::string reason = "appoint donor position to sender";
+        vector<name> donors = {donor};
+        std::string reason = "appoint donor-position to " + donor_str;
         uint64_t appointpos_code_id = 6;
         
         exec_code_data exec_code;
         exec_code.code_action = name{"appointpos"};
-        exec_code.packed_params = eosio::pack(std::make_tuple(community_acc, donorpos_id, sender, reason));
+        exec_code.packed_params = eosio::pack(std::make_tuple(community_acc, donorpos_id, donors, reason));
         vector<exec_code_data> code_actions = {exec_code};
 
         //campaign contract account should be assigned to right holder of "appointpos"
@@ -79,56 +135,96 @@ void contracttmpl::transfer(name from, name to, asset quantity, string memo) {
     }
 }
 
-ACTION contracttmpl::transferfund(name community_account, name executor, asset quantity) {
-    require_auth(community_account);
+// memo fixed format: donate-<donor_name>
+ACTION contracttmpl::transferfund(name community_account, asset quantity, string memo) {
+    auto campaign_info = campaign_table.get();
+    check((campaign_info.fundingEndAt <= current_time_point().sec_since_epoch() < campaign_info.endAt), "ERR::VERIFY_FAILED::not in fund-executing period");
 
-    name burning_address = "eosio"_n;
-    std::string memo = "send " + std::to_string(quantity.amount) + " token to " + executor.to_string();
+    require_auth(community_account);
 
     action( permission_level{_self, "active"_n},
         "eosio.token"_n,
         "transfer"_n,
-        std::make_tuple(_self, burning_address, quantity, memo)).send();
+        std::make_tuple(_self, issuer_account, quantity, memo)).send();
 }
 
-ACTION contracttmpl::refund(name campaign_admin, name revoked_account, name vake_account) {
+//TODO: hardcode campaign_admin when generating contract
+ACTION contracttmpl::refund(name community_account, name campaign_admin, name revoked_account) {
+    require_auth(community_account);
     require_auth(campaign_admin);
     check(is_account(revoked_account), "ERR::VERIFY_FAILED::wrong donor account");
 
-    auto dono_itr = dono_table.find(revoked_account.value);
-    check(dono_itr != dono_table.end(), "ERR::VERIFY_FAILED::account has not donated");
+    auto dono_itr = donor_table.find(revoked_account.value);
+    check(dono_itr != donor_table.end(), "ERR::VERIFY_FAILED::account has not donated");
 
     asset refunded_quantity = dono_itr->token_quantity;
+    string memo = "refund-" + revoked_account.to_string();
     
     action( permission_level{_self, "active"_n},
             "eosio.token"_n,
             "transfer"_n,
-            std::make_tuple(_self, vake_account, refunded_quantity, std::string("refund to revoked account"))).send();
+            std::make_tuple(_self, issuer_account, refunded_quantity, memo)).send();
     
     // erase donor
-    dono_table.erase(dono_itr);
+    donor_table.erase(dono_itr);
 }
 
+ACTION contracttmpl::initialize(name community_account, 
+                                uint64_t donor_position_id, 
+                                uint64_t start_at, 
+                                uint64_t funding_end_at, 
+                                uint64_t end_at) {
+    static bool isInit = false;
+    check((isInit==false), "ERR::VERIFY_FAILED::no re-executing initialization function");
 
-#define EOSIO_ABI_CUSTOM(TYPE, MEMBERS)                                                                          \
-    extern "C"                                                                                                   \
-    {                                                                                                            \
-        void apply(uint64_t receiver, uint64_t code, uint64_t action)                                            \
-        {                                                                                                        \
-            auto self = receiver;                                                                                \
-            if (code == self || code == "eosio.token"_n.value || action == "onerror"_n.value)                    \
-            {                                                                                                    \
-                if (action == "transfer"_n.value)                                                                \
-                {                                                                                                \
-                    check(code == "eosio.token"_n.value, "Must transfer Token");                                 \
-                }                                                                                                \
-                switch (action)                                                                                  \
-                {                                                                                                \
-                    EOSIO_DISPATCH_HELPER(TYPE, MEMBERS)                                                         \
-                }                                                                                                \
-                /* does not allow destructor of this contract to run: eosio_exit(0); */                          \
-            }                                                                                                    \
-        }                                                                                                        \
+    require_auth(_self);
+
+    auto campaign_info = campaign_table.get();
+    campaign_info.communityAccount = community_account;
+    campaign_info.donorPositionId = donor_position_id;
+    campaign_info.startAt = start_at;
+    campaign_info.fundingEndAt = funding_end_at;
+    campaign_info.endAt = end_at;
+    campaign_table.set(campaign_info, _self);
+
+    isInit = true;
+}
+
+ACTION contracttmpl::config(name community_account, 
+                            uint64_t donor_position_id, 
+                            uint64_t start_at, 
+                            uint64_t funding_end_at, 
+                            uint64_t end_at) {
+
+    require_auth(community_account);
+
+    auto campaign_info = campaign_table.get();
+    campaign_info.donorPositionId = donor_position_id;
+    campaign_info.startAt = start_at;
+    campaign_info.fundingEndAt = funding_end_at;
+    campaign_info.endAt = end_at;
+    campaign_table.set(campaign_info, _self);
+}
+
+#define EOSIO_ABI_CUSTOM(TYPE, MEMBERS)                                                                                      \
+    extern "C"                                                                                                               \
+    {                                                                                                                        \
+        void apply(uint64_t receiver, uint64_t code, uint64_t action)                                                        \
+        {                                                                                                                    \
+            auto self = receiver;                                                                                            \
+            if (code == "vake.t"_n.value || code == self || code == "eosio.token"_n.value || action == "onerror"_n.value)    \
+            {                                                                                                                \
+                if (action == "transfer"_n.value)                                                                            \
+                {                                                                                                            \
+                    check(code == "eosio.token"_n.value, "Must transfer Token");                                             \
+                }                                                                                                            \
+                switch (action)                                                                                              \
+                {                                                                                                            \
+                    EOSIO_DISPATCH_HELPER(TYPE, MEMBERS)                                                                     \
+                }                                                                                                            \
+                /* does not allow destructor of this contract to run: eosio_exit(0); */                                      \
+            }                                                                                                                \
+        }                                                                                                                    \
     }
 
-EOSIO_ABI_CUSTOM(contracttmpl, (transfer)(transferfund)(refund))
+EOSIO_ABI_CUSTOM(contracttmpl, (transfer)(transferfund)(refund)(initialize)(config))
