@@ -111,7 +111,8 @@ public:
 
 void contracttmpl::transfer(name from, name to, asset quantity, string memo) {
     auto campaign_info = campaign_table.get();
-    check((campaign_info.startAt <= current_time_point().sec_since_epoch() < campaign_info.fundingEndAt), "ERR::VERIFY_FAILED::not in voting period");
+    bool isInFundingPeriod = (campaign_info.startAt <= current_time_point().sec_since_epoch() < campaign_info.fundingEndAt);
+    check(isInFundingPeriod, "ERR::VERIFY_FAILED::not in voting period");
 
     if (from == _self) {
         return;
@@ -122,7 +123,7 @@ void contracttmpl::transfer(name from, name to, asset quantity, string memo) {
     check((first_break != std::string::npos), "ERR::VERIFY_FAILED::un supported memo format");
     std::string donor_str = memo.substr(first_break + 1);
     name donor = name{donor_str};
-    require_auth(donor);
+    //require_auth(donor);
 
     check((to == _self), "ERR::VERIFY_FAILED::contract is not involved in this transfer");
     check(quantity.symbol.is_valid(), "ERR::VERIFY_FAILED::invalid quantity");
@@ -171,7 +172,8 @@ void contracttmpl::transfer(name from, name to, asset quantity, string memo) {
 // memo fixed format: donate-<donor_name>
 ACTION contracttmpl::transferfund(name community_account, asset quantity, string memo) {
     auto campaign_info = campaign_table.get();
-    check((campaign_info.fundingEndAt <= current_time_point().sec_since_epoch() < campaign_info.endAt), "ERR::VERIFY_FAILED::not in fund-executing period");
+    bool isInFundExecutingPeriod = (campaign_info.fundingEndAt <= current_time_point().sec_since_epoch() < campaign_info.endAt);
+    check(isInFundExecutingPeriod, "ERR::VERIFY_FAILED::not in fund-executing period");
 
     require_auth(community_account);
 
@@ -205,6 +207,7 @@ ACTION contracttmpl::initialize(name community_account,
                                 uint64_t start_at, 
                                 uint64_t funding_end_at, 
                                 uint64_t end_at) {
+
     // if campaign_table has been init, do not init again
     check((campaign_table.exists() == false), "ERR::VERIFY_FAILED::no re-executing initialization function");
     require_auth(_self);
@@ -217,7 +220,7 @@ ACTION contracttmpl::config(name community_account,
                             uint64_t funding_end_at, 
                             uint64_t end_at) {
 
-    //require_auth(community_account);
+    require_auth(community_account);
 
     auto campaign_info = campaign_table.get();
     campaign_info.donorPositionId = donor_position_id;
