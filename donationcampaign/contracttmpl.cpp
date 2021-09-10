@@ -217,7 +217,7 @@ ACTION contracttmpl::config(name community_account,
                             uint64_t funding_end_at, 
                             uint64_t end_at) {
 
-    require_auth(community_account);
+    //require_auth(community_account);
 
     auto campaign_info = campaign_table.get();
     campaign_info.donorPositionId = donor_position_id;
