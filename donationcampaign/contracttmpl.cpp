@@ -211,14 +211,18 @@ ACTION contracttmpl::initialize(name community_account,
     eosio::print("\n>>>mark2");
     require_auth(_self);
     eosio::print("\n>>>mark3");
-    auto campaign_info = campaign_table.get();
-    eosio::print("\n>>>mark4");
-    campaign_info.communityAccount = community_account;
-    campaign_info.donorPositionId = donor_position_id;
-    campaign_info.startAt = start_at;
-    campaign_info.fundingEndAt = funding_end_at;
-    campaign_info.endAt = end_at;
-    campaign_table.set(campaign_info, _self);
+
+    campaign_table.set(campaign{community_account, donor_position_id, start_at, funding_end_at, end_at}, _self);
+
+
+    // auto campaign_info = campaign_table.get();
+    // eosio::print("\n>>>mark4");
+    // campaign_info.communityAccount = community_account;
+    // campaign_info.donorPositionId = donor_position_id;
+    // campaign_info.startAt = start_at;
+    // campaign_info.fundingEndAt = funding_end_at;
+    // campaign_info.endAt = end_at;
+    // campaign_table.set(campaign_info, _self);
 
     isInit = true;
 }
