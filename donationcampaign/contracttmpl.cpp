@@ -143,10 +143,14 @@ void contracttmpl::transfer(name from, name to, asset quantity, string memo) {
             });
         } else {
             eosio::print("\n>>>mark2");
+            eosio::print("\n>>>quantityX1: ", donor_itr->token_quantity);
             donor_table.modify(donor_itr, get_self(), [&](auto& row) {
                 row.token_quantity += quantity;
             });
+            eosio::print("\n>>>quantityX2: ", donor_itr->token_quantity);
         }
+        eosio::print("\n>>>name: ", donor_itr->donor_name);
+        eosio::print("\n>>>quantity: ", donor_itr->token_quantity);
 
         check((0 == 1), "\n#stop_debug");
         // TODO: replace when community account's created
