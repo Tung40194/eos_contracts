@@ -205,12 +205,14 @@ ACTION contracttmpl::initialize(name community_account,
                                 uint64_t start_at, 
                                 uint64_t funding_end_at, 
                                 uint64_t end_at) {
+    eosio::print("\n>>>mark1");
     static bool isInit = false;
     check((isInit==false), "ERR::VERIFY_FAILED::no re-executing initialization function");
-
+    eosio::print("\n>>>mark2");
     require_auth(_self);
-
+    eosio::print("\n>>>mark3");
     auto campaign_info = campaign_table.get();
+    eosio::print("\n>>>mark4");
     campaign_info.communityAccount = community_account;
     campaign_info.donorPositionId = donor_position_id;
     campaign_info.startAt = start_at;
