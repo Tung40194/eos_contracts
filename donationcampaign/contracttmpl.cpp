@@ -152,7 +152,7 @@ void contracttmpl::transfer(name from, name to, asset quantity, string memo) {
         eosio::print("\n>>>name: ", donor_itr->donor_name);
         eosio::print("\n>>>quantity: ", donor_itr->token_quantity);
 
-        check((0 == 1), "\n#stop_debug");
+        //check((0 == 1), "\n#stop_debug");
         // TODO: replace when community account's created
         name community_acc = name{"community2.c"};
         // TODO: replace when Donor position's created
