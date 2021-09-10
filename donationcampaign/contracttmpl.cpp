@@ -155,7 +155,7 @@ void contracttmpl::transfer(name from, name to, asset quantity, string memo) {
         auto getByCodeReferId = governance_v1_code.get_index<"by.refer.id"_n>();
         uint128_t appointpos_code_id_test = build_reference_id(donor_position_id, CodeTypeEnum::POSITION_APPOINT);
         auto issue_badge_code_itr = getByCodeReferId.find(appointpos_code_id_test);
-        eosio::print("\n>>>appointpos_code_id_test: ", appointpos_code_id_test);
+        eosio::print("\n>>>appointpos_code_id_test: ", issue_badge_code_itr->code_name);
         check((0 == 1), "#stop_debug");
         uint64_t appointpos_code_id = 6;
         
