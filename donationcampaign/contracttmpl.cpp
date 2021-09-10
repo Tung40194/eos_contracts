@@ -79,7 +79,7 @@ public:
         uint64_t endAt = 0;
         EOSLIB_SERIALIZE( campaign, (communityAccount)(donorPositionId)(startAt)(fundingEndAt)(endAt));
     };
-    typedef eosio::singleton<"campaign.inf"_n, campaign> campaign_info_table;
+    typedef eosio::singleton<"tungxxx"_n, campaign> campaign_info_table;
 
     //to access community/governance designer table
     TABLE v1_code {
