@@ -71,15 +71,15 @@ public:
     typedef eosio::multi_index<"donor.info"_n, donation_info> donation_info_table;
 
     // table to store campaign info
-    TABLE campaign {
+    TABLE tungxxx {
         name communityAccount = name{};
         uint64_t donorPositionId = 0;
         uint64_t startAt = 0;
         uint64_t fundingEndAt = 0;
         uint64_t endAt = 0;
-        EOSLIB_SERIALIZE( campaign, (communityAccount)(donorPositionId)(startAt)(fundingEndAt)(endAt));
+        EOSLIB_SERIALIZE( tungxxx, (communityAccount)(donorPositionId)(startAt)(fundingEndAt)(endAt));
     };
-    typedef eosio::singleton<"tungxxx"_n, campaign> campaign_info_table;
+    typedef eosio::singleton<"campaign.inf"_n, tungxxx> campaign_info_table;
 
     //to access community/governance designer table
     TABLE v1_code {
