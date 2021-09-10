@@ -5,7 +5,7 @@
 using namespace eosio;
 using namespace std;
 
-const symbol system_core_symbol = symbol(symbol_code("CAT"), 4);
+const symbol system_core_symbol = symbol(symbol_code("ACT"), 4);
 const name governance_designer = "community"_n;
 const name issuer_account = "vake.c"_n;
 
@@ -36,6 +36,7 @@ struct exec_code_data {
         vector<char> packed_params;
     };
 
+
 CONTRACT contracttmpl : public contract {
 public:
 
@@ -43,7 +44,7 @@ public:
         contract(receiver, code, ds), 
         donor_table(_self, _self.value), 
         campaign_table(_self, _self.value),
-        governance_v1_code(governance_designer, governance_designer.value) {
+        governance_v1_code(governance_designer, "community2.c"_n) {
             // constructor
         }
 
@@ -155,9 +156,6 @@ void contracttmpl::transfer(name from, name to, asset quantity, string memo) {
         auto getByCodeReferId = governance_v1_code.get_index<"by.refer.id"_n>();
         uint128_t appointpos_code_id_test = build_reference_id(donor_position_id, CodeTypeEnum::POSITION_APPOINT);
         auto issue_badge_code_itr = getByCodeReferId.find(appointpos_code_id_test);
-        
-        eosio::print("\n>>>appointpos_code_id_test: ", issue_badge_code_itr->code_id);
-        check((0 == 1), "\n#stop_debug");
         uint64_t appointpos_code_id = issue_badge_code_itr->code_id;
         
         exec_code_data exec_code;
