@@ -6,7 +6,30 @@ using namespace eosio;
 using namespace std;
 
 const symbol system_core_symbol = symbol(symbol_code("ACT"), 4);
+const name governance_designer = "community"_n;
 const name issuer_account = "vake.c"_n;
+
+enum CodeTypeEnum {
+    NORMAL = 0,
+    POSITION_CONFIG,
+    POSITION_APPOINT,
+    POSITION_DISMISS,
+    BADGE_CONFIG,
+    BADGE_ISSUE,
+    BADGE_REVOKE,
+};
+
+enum ExecutionType
+{
+    SOLE_DECISION = 0,
+    COLLECTIVE_DECISION,
+    BOTH
+};
+
+struct CodeType {
+    uint8_t type;
+    uint64_t refer_id;
+};
 
 struct exec_code_data {
         name code_action;
@@ -14,13 +37,19 @@ struct exec_code_data {
     };
 
 CONTRACT contracttmpl : public contract {
-
 public:
 
     contracttmpl(eosio::name receiver, eosio::name code, datastream<const char *> ds) : 
-        contract(receiver, code, ds), donor_table(_self, _self.value), campaign_table(_self, _self.value) {
+        contract(receiver, code, ds), 
+        donor_table(_self, _self.value), 
+        campaign_table(_self, _self.value),
+        governance_v1_code(governance_designer, governance_designer.value) {
             // constructor
         }
+
+    static inline uint128_t build_reference_id(uint64_t reference_id, uint64_t type) {
+        return static_cast<uint128_t>(type)  | static_cast<uint128_t>(reference_id) << 64;
+    }
 
     void transfer(name from, name to, asset quantity, string memo);
 
@@ -52,32 +81,31 @@ public:
     };
     typedef eosio::singleton<"campaign.inf"_n, campaign_info> campaign_info_table;
 
-    // to access Governance designer table
-    // TABLE v1_code
-    // {
-    //     uint64_t code_id;
-    //     name code_name;
-    //     name contract_name;
-    //     vector<name> code_actions;
-    //     uint8_t code_exec_type = ExecutionType::SOLE_DECISION;
-    //     uint8_t amendment_exec_type = ExecutionType::SOLE_DECISION;
-    //     CodeType code_type;
+    //to access community/governance designer table
+    TABLE v1_code {
+        uint64_t code_id;
+        name code_name;
+        name contract_name;
+        vector<name> code_actions;
+        uint8_t code_exec_type = ExecutionType::SOLE_DECISION;
+        uint8_t amendment_exec_type = ExecutionType::SOLE_DECISION;
+        CodeType code_type;
 
-    //     uint64_t primary_key() const { return code_id; }
-    //     uint64_t by_code_name() const { return code_name.value; }
-    //     uint128_t by_reference_id() const { return build_reference_id(code_type.refer_id, code_type.type); }
+        uint64_t primary_key() const { return code_id; }
+        uint64_t by_code_name() const { return code_name.value; }
+        uint128_t by_reference_id() const { return build_reference_id(code_type.refer_id, code_type.type); }
+        
+        EOSLIB_SERIALIZE( v1_code, (code_id)(code_name)(contract_name)(code_actions)(code_exec_type)(amendment_exec_type)(code_type));
+    };
 
-    //     EOSLIB_SERIALIZE( v1_code, (code_id)(code_name)(contract_name)(code_actions)(code_exec_type)(amendment_exec_type)(code_type));
-    // };
-
-    // typedef eosio::multi_index<"v1.code"_n, v1_code, 
-    //     indexed_by< "by.code.name"_n, const_mem_fun<v1_code, uint64_t, &v1_code::by_code_name>>,
-    //     indexed_by< "by.refer.id"_n, const_mem_fun<v1_code, uint128_t, &v1_code::by_reference_id>>
-    //     > v1_code_table;
+    typedef eosio::multi_index<"v1.code"_n, v1_code, 
+        indexed_by< "by.code.name"_n, const_mem_fun<v1_code, uint64_t, &v1_code::by_code_name>>,
+        indexed_by< "by.refer.id"_n, const_mem_fun<v1_code, uint128_t, &v1_code::by_reference_id>>
+        > v1_code_table;
 
     donation_info_table donor_table;
     campaign_info_table campaign_table;
-    //v1_code_table governance_v1_code;
+    v1_code_table governance_v1_code;
 };
 
 void contracttmpl::transfer(name from, name to, asset quantity, string memo) {
@@ -103,7 +131,7 @@ void contracttmpl::transfer(name from, name to, asset quantity, string memo) {
 
         // record donation info for donor refund if revoked
         auto donor_itr = donor_table.find(donor.value);
-        if (donor_itr == donor_table.end()){
+        if (donor_itr == donor_table.end()) {
             donor_table.emplace(get_self(), [&](auto &row) {
                 row.donor_name = donor;
                 row.token_quantity = quantity;
@@ -117,14 +145,18 @@ void contracttmpl::transfer(name from, name to, asset quantity, string memo) {
         // TODO: replace when community account's created
         name community_acc = name{"community2.c"};
         // TODO: replace when Donor position's created
-        uint64_t donorpos_id = 1;
+        uint64_t donor_position_id = 1;
         vector<name> donors = {donor};
         std::string reason = "appoint donor-position to " + donor_str;
+
+        auto getByCodeReferId = governance_v1_code.get_index<"by.refer.id"_n>();
+        uint128_t appointpos_code_id_test = build_reference_id(donor_position_id, CodeTypeEnum::POSITION_APPOINT);
+        auto issue_badge_code_itr = getByCodeReferId.find(appointpos_code_id_test);
         uint64_t appointpos_code_id = 6;
         
         exec_code_data exec_code;
         exec_code.code_action = name{"appointpos"};
-        exec_code.packed_params = eosio::pack(std::make_tuple(community_acc, donorpos_id, donors, reason));
+        exec_code.packed_params = eosio::pack(std::make_tuple(community_acc, donor_position_id, donors, reason));
         vector<exec_code_data> code_actions = {exec_code};
 
         //campaign contract account should be assigned to right holder of "appointpos"

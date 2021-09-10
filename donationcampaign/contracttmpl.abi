@@ -1,0 +1,232 @@
+{
+    "____comment": "This file was generated with eosio-abigen. DO NOT EDIT ",
+    "version": "eosio::abi/1.2",
+    "types": [],
+    "structs": [
+        {
+            "name": "CodeType",
+            "base": "",
+            "fields": [
+                {
+                    "name": "type",
+                    "type": "uint8"
+                },
+                {
+                    "name": "refer_id",
+                    "type": "uint64"
+                }
+            ]
+        },
+        {
+            "name": "campaign_info",
+            "base": "",
+            "fields": [
+                {
+                    "name": "communityAccount",
+                    "type": "name"
+                },
+                {
+                    "name": "donorPositionId",
+                    "type": "uint64"
+                },
+                {
+                    "name": "startAt",
+                    "type": "uint64"
+                },
+                {
+                    "name": "fundingEndAt",
+                    "type": "uint64"
+                },
+                {
+                    "name": "endAt",
+                    "type": "uint64"
+                }
+            ]
+        },
+        {
+            "name": "config",
+            "base": "",
+            "fields": [
+                {
+                    "name": "community_account",
+                    "type": "name"
+                },
+                {
+                    "name": "donor_position_id",
+                    "type": "uint64"
+                },
+                {
+                    "name": "start_at",
+                    "type": "uint64"
+                },
+                {
+                    "name": "funding_end_at",
+                    "type": "uint64"
+                },
+                {
+                    "name": "end_at",
+                    "type": "uint64"
+                }
+            ]
+        },
+        {
+            "name": "donation_info",
+            "base": "",
+            "fields": [
+                {
+                    "name": "donor_name",
+                    "type": "name"
+                },
+                {
+                    "name": "token_quantity",
+                    "type": "asset"
+                }
+            ]
+        },
+        {
+            "name": "initialize",
+            "base": "",
+            "fields": [
+                {
+                    "name": "community_account",
+                    "type": "name"
+                },
+                {
+                    "name": "donor_position_id",
+                    "type": "uint64"
+                },
+                {
+                    "name": "start_at",
+                    "type": "uint64"
+                },
+                {
+                    "name": "funding_end_at",
+                    "type": "uint64"
+                },
+                {
+                    "name": "end_at",
+                    "type": "uint64"
+                }
+            ]
+        },
+        {
+            "name": "refund",
+            "base": "",
+            "fields": [
+                {
+                    "name": "community_account",
+                    "type": "name"
+                },
+                {
+                    "name": "campaign_admin",
+                    "type": "name"
+                },
+                {
+                    "name": "revoked_account",
+                    "type": "name"
+                }
+            ]
+        },
+        {
+            "name": "transferfund",
+            "base": "",
+            "fields": [
+                {
+                    "name": "community_account",
+                    "type": "name"
+                },
+                {
+                    "name": "quantity",
+                    "type": "asset"
+                },
+                {
+                    "name": "memo",
+                    "type": "string"
+                }
+            ]
+        },
+        {
+            "name": "v1_code",
+            "base": "",
+            "fields": [
+                {
+                    "name": "code_id",
+                    "type": "uint64"
+                },
+                {
+                    "name": "code_name",
+                    "type": "name"
+                },
+                {
+                    "name": "contract_name",
+                    "type": "name"
+                },
+                {
+                    "name": "code_actions",
+                    "type": "name[]"
+                },
+                {
+                    "name": "code_exec_type",
+                    "type": "uint8"
+                },
+                {
+                    "name": "amendment_exec_type",
+                    "type": "uint8"
+                },
+                {
+                    "name": "code_type",
+                    "type": "CodeType"
+                }
+            ]
+        }
+    ],
+    "actions": [
+        {
+            "name": "config",
+            "type": "config",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "initialize",
+            "type": "initialize",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "refund",
+            "type": "refund",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "transferfund",
+            "type": "transferfund",
+            "ricardian_contract": ""
+        }
+    ],
+    "tables": [
+        {
+            "name": "campaign_info",
+            "type": "campaign_info",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        },
+        {
+            "name": "donor.info",
+            "type": "donation_info",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        },
+        {
+            "name": "v1.code",
+            "type": "v1_code",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        }
+    ],
+    "kv_tables": {},
+    "ricardian_clauses": [],
+    "variants": [],
+    "action_results": []
+}
