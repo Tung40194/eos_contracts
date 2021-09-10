@@ -110,6 +110,7 @@ public:
 };
 
 void contracttmpl::transfer(name from, name to, asset quantity, string memo) {
+    check(campaign_table.exists(), "ERR::VERIFY_FAILED::campaign has not been init, please init it first");
     auto campaign_info = campaign_table.get();
     bool isInFundingPeriod = (campaign_info.startAt <= current_time_point().sec_since_epoch() < campaign_info.fundingEndAt);
     check(isInFundingPeriod, "ERR::VERIFY_FAILED::not in voting period");
@@ -171,6 +172,7 @@ void contracttmpl::transfer(name from, name to, asset quantity, string memo) {
 
 // memo fixed format: donate-<donor_name>
 ACTION contracttmpl::transferfund(name community_account, asset quantity, string memo) {
+    check(campaign_table.exists(), "ERR::VERIFY_FAILED::campaign has not been init, please init it first");
     auto campaign_info = campaign_table.get();
     bool isInFundExecutingPeriod = (campaign_info.fundingEndAt <= current_time_point().sec_since_epoch() < campaign_info.endAt);
     check(isInFundExecutingPeriod, "ERR::VERIFY_FAILED::not in fund-executing period");
