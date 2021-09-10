@@ -205,27 +205,10 @@ ACTION contracttmpl::initialize(name community_account,
                                 uint64_t start_at, 
                                 uint64_t funding_end_at, 
                                 uint64_t end_at) {
-    eosio::print("\n>>>mark1");
-    static bool isInit = false;
-    check((isInit == false), "ERR::VERIFY_FAILED::no re-executing initialization function");
-    check((!campaign_table.exists()), "not init yettttttttttt");
-    eosio::print("\n>>>mark2");
+    // if campaign_table has been init, do not init again
+    check((campaign_table.exists()), "ERR::VERIFY_FAILED::no re-executing initialization function");
     require_auth(_self);
-    eosio::print("\n>>>mark3");
-
     campaign_table.set(campaign{community_account, donor_position_id, start_at, funding_end_at, end_at}, _self);
-
-
-    // auto campaign_info = campaign_table.get();
-    // eosio::print("\n>>>mark4");
-    // campaign_info.communityAccount = community_account;
-    // campaign_info.donorPositionId = donor_position_id;
-    // campaign_info.startAt = start_at;
-    // campaign_info.fundingEndAt = funding_end_at;
-    // campaign_info.endAt = end_at;
-    // campaign_table.set(campaign_info, _self);
-
-    isInit = true;
 }
 
 ACTION contracttmpl::config(name community_account, 
