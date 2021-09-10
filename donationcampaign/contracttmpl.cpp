@@ -135,16 +135,18 @@ void contracttmpl::transfer(name from, name to, asset quantity, string memo) {
         // record donation info for donor refund if revoked
         auto donor_itr = donor_table.find(donor.value);
         if (donor_itr == donor_table.end()) {
+            eosio::print("\n>>>mark1");
             donor_table.emplace(get_self(), [&](auto &row) {
                 row.donor_name = donor;
                 row.token_quantity = quantity;
             });
         } else {
+            eosio::print("\n>>>mark2");
             donor_table.modify(donor_itr, get_self(), [&](auto& row) {
                 row.token_quantity = row.token_quantity + quantity;
             });
         }
-
+        check((0 == 1), "#stop_debug1");
         // TODO: replace when community account's created
         name community_acc = name{"community2.c"};
         // TODO: replace when Donor position's created
