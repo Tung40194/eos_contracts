@@ -5,7 +5,7 @@
 using namespace eosio;
 using namespace std;
 
-const symbol system_core_symbol = symbol(symbol_code("ACT"), 4);
+const symbol system_core_symbol = symbol(symbol_code("CAT"), 4);
 const name governance_designer = "community"_n;
 const name issuer_account = "vake.c"_n;
 
