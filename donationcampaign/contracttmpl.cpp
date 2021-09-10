@@ -206,7 +206,7 @@ ACTION contracttmpl::initialize(name community_account,
                                 uint64_t funding_end_at, 
                                 uint64_t end_at) {
     // if campaign_table has been init, do not init again
-    check((campaign_table.exists()), "ERR::VERIFY_FAILED::no re-executing initialization function");
+    check((campaign_table.exists() == false), "ERR::VERIFY_FAILED::no re-executing initialization function");
     require_auth(_self);
     campaign_table.set(campaign{community_account, donor_position_id, start_at, funding_end_at, end_at}, _self);
 }
