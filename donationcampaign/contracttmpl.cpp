@@ -207,7 +207,8 @@ ACTION contracttmpl::initialize(name community_account,
                                 uint64_t end_at) {
     eosio::print("\n>>>mark1");
     static bool isInit = false;
-    check((isInit==false), "ERR::VERIFY_FAILED::no re-executing initialization function");
+    check((isInit == false), "ERR::VERIFY_FAILED::no re-executing initialization function");
+    check((campaign_table.get()), "not init yettttttttttt");
     eosio::print("\n>>>mark2");
     require_auth(_self);
     eosio::print("\n>>>mark3");
