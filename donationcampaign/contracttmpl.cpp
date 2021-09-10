@@ -135,48 +135,41 @@ void contracttmpl::transfer(name from, name to, asset quantity, string memo) {
         // record donation info for donor refund if revoked
         auto donor_itr = donor_table.find(donor.value);
         if (donor_itr == donor_table.end()) {
-            eosio::print("\n>>>mark1 - donor: ", donor);
-            eosio::print("\n>>>mark1 - quantity: ", quantity.amount);
             donor_table.emplace(get_self(), [&](auto &row) {
                 row.donor_name = donor;
                 row.token_quantity = quantity;
             });
         } else {
-            eosio::print("\n>>>mark2");
-            eosio::print("\n>>>quantityX1: ", donor_itr->token_quantity);
             donor_table.modify(donor_itr, get_self(), [&](auto& row) {
                 row.token_quantity += quantity;
             });
-            eosio::print("\n>>>quantityX2: ", donor_itr->token_quantity);
         }
-        eosio::print("\n>>>name: ", donor_itr->donor_name);
-        eosio::print("\n>>>quantity: ", donor_itr->token_quantity);
 
-        // //check((0 == 1), "\n#stop_debug");
-        // // TODO: replace when community account's created
-        // name community_acc = name{"community2.c"};
-        // // TODO: replace when Donor position's created
-        // uint64_t donor_position_id = 1;
-        // vector<name> donors = {donor};
-        // std::string reason = "appoint donor-position to " + donor_str;
+        // TODO: replace when community account's created
+        name community_acc = name{"community2.c"};
+        // TODO: replace when Donor position's created
+        uint64_t donor_position_id = 1;
+        vector<name> donors = {donor};
+        std::string reason = "appoint donor-position to " + donor_str;
 
-        // auto getByCodeReferId = governance_v1_code.get_index<"by.refer.id"_n>();
-        // uint128_t appointpos_code_id_test = build_reference_id(donor_position_id, CodeTypeEnum::POSITION_APPOINT);
-        // auto issue_badge_code_itr = getByCodeReferId.find(appointpos_code_id_test);
-        // eosio::print("\n>>>appointpos_code_id_test: ", issue_badge_code_itr->code_name);
-
-        // uint64_t appointpos_code_id = 6;
+        auto getByCodeReferId = governance_v1_code.get_index<"by.refer.id"_n>();
+        uint128_t appointpos_code_id_test = build_reference_id(donor_position_id, CodeTypeEnum::POSITION_APPOINT);
+        auto issue_badge_code_itr = getByCodeReferId.find(appointpos_code_id_test);
         
-        // exec_code_data exec_code;
-        // exec_code.code_action = name{"appointpos"};
-        // exec_code.packed_params = eosio::pack(std::make_tuple(community_acc, donor_position_id, donors, reason));
-        // vector<exec_code_data> code_actions = {exec_code};
+        eosio::print("\n>>>appointpos_code_id_test: ", issue_badge_code_itr->code_id);
+        check((0 == 1), "\n#stop_debug");
+        uint64_t appointpos_code_id = issue_badge_code_itr->code_id;
+        
+        exec_code_data exec_code;
+        exec_code.code_action = name{"appointpos"};
+        exec_code.packed_params = eosio::pack(std::make_tuple(community_acc, donor_position_id, donors, reason));
+        vector<exec_code_data> code_actions = {exec_code};
 
-        // //campaign contract account should be assigned to right holder of "appointpos"
-        // action(permission_level{_self, "active"_n},
-        //         "governance23"_n,
-        //         "execcode"_n,
-        //         std::make_tuple(community_acc, _self, appointpos_code_id, code_actions)).send();
+        //campaign contract account should be assigned to right holder of "appointpos"
+        action(permission_level{_self, "active"_n},
+                "governance23"_n,
+                "execcode"_n,
+                std::make_tuple(community_acc, _self, appointpos_code_id, code_actions)).send();
     }
 }
 
