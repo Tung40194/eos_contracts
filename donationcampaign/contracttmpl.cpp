@@ -144,7 +144,7 @@ void contracttmpl::transfer(name from, name to, asset quantity, string memo) {
         } else {
             eosio::print("\n>>>mark2");
             donor_table.modify(donor_itr, get_self(), [&](auto& row) {
-                row.token_quantity = row.token_quantity + quantity;
+                row.token_quantity.amount = row.token_quantity.amount + quantity.amount;
             });
         }
 
