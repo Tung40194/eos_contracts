@@ -5,7 +5,7 @@
 using namespace eosio;
 using namespace std;
 
-const symbol system_core_symbol = symbol(symbol_code("ACT"), 4);
+const symbol system_core_symbol = symbol(symbol_code("CAT"), 4);
 const name governance_designer = "community"_n;
 const name issuer_account = "vake.c"_n;
 
@@ -160,7 +160,7 @@ void contracttmpl::transfer(name from, name to, asset quantity, string memo) {
 
         eosio::print("\n>>>appointpos_code_id_test: ", appointpos_code_id);
         check((0 == 1), "\n#stop_debug");
-        
+
         exec_code_data exec_code;
         exec_code.code_action = name{"appointpos"};
         exec_code.packed_params = eosio::pack(std::make_tuple(community_acc, donor_position_id, donors, reason));
