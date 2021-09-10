@@ -148,7 +148,7 @@ void contracttmpl::transfer(name from, name to, asset quantity, string memo) {
             });
         }
 
-        check("\n#stop_debug");
+        check((0 == 1), "\n#stop_debug");
         // TODO: replace when community account's created
         name community_acc = name{"community2.c"};
         // TODO: replace when Donor position's created
