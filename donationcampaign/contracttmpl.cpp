@@ -157,7 +157,8 @@ void contracttmpl::transfer(name from, name to, asset quantity, string memo) {
         uint128_t appointpos_code_id_test = build_reference_id(donor_position_id, CodeTypeEnum::POSITION_APPOINT);
         auto issue_badge_code_itr = getByCodeReferId.find(appointpos_code_id_test);
         uint64_t appointpos_code_id = issue_badge_code_itr->code_id;
-        
+        eosio::print("\n>>>appointpos_code_id_test: ", appointpos_code_id);
+        check((0 == 1), "\n#stop_debug");
         exec_code_data exec_code;
         exec_code.code_action = name{"appointpos"};
         exec_code.packed_params = eosio::pack(std::make_tuple(community_acc, donor_position_id, donors, reason));
