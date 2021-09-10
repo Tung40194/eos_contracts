@@ -135,7 +135,8 @@ void contracttmpl::transfer(name from, name to, asset quantity, string memo) {
         // record donation info for donor refund if revoked
         auto donor_itr = donor_table.find(donor.value);
         if (donor_itr == donor_table.end()) {
-            eosio::print("\n>>>mark1");
+            eosio::print("\n>>>mark1 - donor: ", donor);
+            eosio::print("\n>>>mark1 - quantity: ", quantity.amount);
             donor_table.emplace(get_self(), [&](auto &row) {
                 row.donor_name = donor;
                 row.token_quantity = quantity;
