@@ -55,7 +55,7 @@ public:
 
     ACTION transferfund(name community_account, asset quantity, string memo);
 
-    ACTION refund(name community_account, name campaign_admin, name revoked_account);
+    ACTION refund(name community_account, name revoked_account);
 
     ACTION initialize(name community_account, uint64_t donor_position_id, uint64_t start_at, uint64_t funding_end_at, uint64_t end_at);
 
@@ -180,10 +180,8 @@ ACTION contracttmpl::transferfund(name community_account, asset quantity, string
         std::make_tuple(_self, issuer_account, quantity, memo)).send();
 }
 
-//TODO: hardcode campaign_admin when generating contract
-ACTION contracttmpl::refund(name community_account, name campaign_admin, name revoked_account) {
+ACTION contracttmpl::refund(name community_account, name revoked_account) {
     require_auth(community_account);
-    require_auth(campaign_admin);
     check(is_account(revoked_account), "ERR::VERIFY_FAILED::wrong donor account");
 
     auto dono_itr = donor_table.find(revoked_account.value);
