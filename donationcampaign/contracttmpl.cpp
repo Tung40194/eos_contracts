@@ -44,7 +44,7 @@ public:
         contract(receiver, code, ds), 
         donor_table(_self, _self.value), 
         campaign_table(_self, _self.value),
-        governance_v1_code(governance_designer, "community2.c"_n) {
+        governance_v1_code(governance_designer, "community2.c"_n.value) {
             // constructor
         }
 
