@@ -7,6 +7,8 @@ using namespace std;
 
 const symbol system_core_symbol = symbol(symbol_code("CAT"), 4);
 const name governance_designer = "community"_n;
+const name created_community = "community2.c"_n; // TODO: replace when community account's created
+const uint64_t donor_position_id = 1; // TODO: replace when Donor position's created
 const name issuer_account = "vake.c"_n;
 
 enum CodeTypeEnum {
@@ -19,8 +21,7 @@ enum CodeTypeEnum {
     BADGE_REVOKE,
 };
 
-enum ExecutionType
-{
+enum ExecutionType {
     SOLE_DECISION = 0,
     COLLECTIVE_DECISION,
     BOTH
@@ -44,7 +45,7 @@ public:
         contract(receiver, code, ds), 
         donor_table(_self, _self.value), 
         campaign_table(_self, _self.value),
-        governance_v1_code(governance_designer, "community2.c"_n.value) {
+        governance_v1_code(governance_designer, created_community.value) {
             // constructor
         }
 
@@ -52,17 +53,51 @@ public:
         return static_cast<uint128_t>(type)  | static_cast<uint128_t>(reference_id) << 64;
     }
 
+    /*  Action   : transfer
+        Description: handle fund sent into this contract
+        Parameters : from                   - sender
+                     to                     - has to be this contract
+                     quantity               - amount of token sent
+                     memo                   - donor's infor under a fixed format of: donate-<donor_name>
+        Return     : none */
     void transfer(name from, name to, asset quantity, string memo);
 
+    /*  Action   : transferfund
+        Description: transfer and log fund information
+        Parameters : community_account      - created community's account
+                     quantity               - amount of token to be funded
+                     memo                   - donor's infor under a fixed format of: donate-<donor_name>
+        Return     : none */
     ACTION transferfund(name community_account, asset quantity, string memo);
 
+    /*  Action   : refund
+        Description: refund if donors're revoked 
+        Parameters : community_account      - created community's account
+                     revoked_account        - revoked account
+        Return     : none */
     ACTION refund(name community_account, name revoked_account);
 
+    /*  Action   : initialize
+        Description: initialize campaign information. Executed only once before campaign starts
+        Parameters : community_account      - created community's account
+                     donor_position_id      - donor-position id
+                     start_at               - when funding starts
+                     funding_end_at         - when funding ends
+                     end_at                 - when fund execution & campaign end
+        Return     : none */
     ACTION initialize(name community_account, uint64_t donor_position_id, uint64_t start_at, uint64_t funding_end_at, uint64_t end_at);
-
+    
+    /*  Action   : config
+        Description: configure campaign information
+        Parameters : community_account      - created community's account
+                     donor_position_id      - donor-position id
+                     start_at               - when funding starts
+                     funding_end_at         - when funding ends
+                     end_at                 - when fund execution & campaign end
+        Return     : none */
     ACTION config(name community_account, uint64_t donor_position_id, uint64_t start_at, uint64_t funding_end_at, uint64_t end_at);
 
-    // table to store donor info
+    // to record donation info for donor-refund if revoked
     TABLE donation_info {
         name donor_name;
         asset token_quantity;
@@ -71,7 +106,7 @@ public:
     };
     typedef eosio::multi_index<"donor.info"_n, donation_info> donation_info_table;
 
-    // table to store campaign info
+    // to store campaign info
     TABLE campaign {
         name communityAccount = name{};
         uint64_t donorPositionId = 0;
@@ -83,7 +118,7 @@ public:
     typedef eosio::singleton<"campaign.inf"_n, campaign> campaign_info_table;
     typedef eosio::multi_index<"campaign.inf"_n, campaign> fcampaign_info_table;
 
-    //to access community/governance designer table
+    // to access community/governance designer table
     TABLE v1_code {
         uint64_t code_id;
         name code_name;
@@ -99,7 +134,6 @@ public:
         
         EOSLIB_SERIALIZE( v1_code, (code_id)(code_name)(contract_name)(code_actions)(code_exec_type)(amendment_exec_type)(code_type));
     };
-
     typedef eosio::multi_index<"v1.code"_n, v1_code, 
         indexed_by< "by.code.name"_n, const_mem_fun<v1_code, uint64_t, &v1_code::by_code_name>>,
         indexed_by< "by.refer.id"_n, const_mem_fun<v1_code, uint128_t, &v1_code::by_reference_id>>
@@ -111,29 +145,26 @@ public:
 };
 
 void contracttmpl::transfer(name from, name to, asset quantity, string memo) {
-    check(campaign_table.exists(), "ERR::VERIFY_FAILED::campaign has not been init, please init it first");
-    auto campaign_info = campaign_table.get();
-    bool isInFundingPeriod = (campaign_info.startAt <= current_time_point().sec_since_epoch() < campaign_info.fundingEndAt);
-    check(isInFundingPeriod, "ERR::VERIFY_FAILED::not in voting period");
-
     if (from == _self) {
         return;
     }
+
+    check((to == _self), "ERR::VERIFY_FAILED::contract is not involved in this transfer.");
+    check(quantity.symbol.is_valid(), "ERR::VERIFY_FAILED::invalid quantity.");
+    check(quantity.amount > 0, "ERR::VERIFY_FAILED::only positive quantity allowed.");
+    check(campaign_table.exists(), "ERR::VERIFY_FAILED::campaign has not been initialized, please run fundtion initialize first.");
+
+    auto campaign_info = campaign_table.get();
+    bool isInFundingPeriod = (campaign_info.startAt <= current_time_point().sec_since_epoch() < campaign_info.fundingEndAt);
+    check(isInFundingPeriod, "ERR::VERIFY_FAILED::not in voting period.");
     
-    // memo fixed format: donate-<donor_name>
     const std::size_t first_break = memo.find("-");
-    check((first_break != std::string::npos), "ERR::VERIFY_FAILED::un supported memo format");
+    check((first_break != std::string::npos), "ERR::VERIFY_FAILED::unsupported memo format.");
     std::string donor_str = memo.substr(first_break + 1);
     name donor = name{donor_str};
-    //require_auth(donor);
-
-    check((to == _self), "ERR::VERIFY_FAILED::contract is not involved in this transfer");
-    check(quantity.symbol.is_valid(), "ERR::VERIFY_FAILED::invalid quantity");
-    check(quantity.amount > 0, "ERR::VERIFY_FAILED::only positive quantity allowed");
+    require_auth(donor);
     
     if (quantity.symbol == system_core_symbol) {
-
-        // record donation info for donor refund if revoked
         auto donor_itr = donor_table.find(donor.value);
         if (donor_itr == donor_table.end()) {
             donor_table.emplace(get_self(), [&](auto &row) {
@@ -146,40 +177,34 @@ void contracttmpl::transfer(name from, name to, asset quantity, string memo) {
             });
         }
 
-        // TODO: replace when community account's created
-        name community_acc = name{"community2.c"};
-        // TODO: replace when Donor position's created
-        uint64_t donor_position_id = 1;
         vector<name> donors = {donor};
         std::string reason = "appoint donor-position to " + donor_str;
 
         auto getByCodeReferId = governance_v1_code.get_index<"by.refer.id"_n>();
-        uint128_t appointpos_code_id_test = build_reference_id(donor_position_id, CodeTypeEnum::POSITION_APPOINT);
-        auto issue_badge_code_itr = getByCodeReferId.find(appointpos_code_id_test);
-        uint64_t appointpos_code_id = issue_badge_code_itr->code_id;
+        uint128_t appointpos_code = build_reference_id(donor_position_id, CodeTypeEnum::POSITION_APPOINT);
+        auto appointpos_code_itr = getByCodeReferId.find(appointpos_code);
+        uint64_t appointpos_code_id = appointpos_code_itr->code_id;
 
-        eosio::print("\n>>>appointpos_code_id_test: ", appointpos_code_id);
-        check((0 == 1), "\n#stop_debug");
-
+        // packing appointpos action for execcode
         exec_code_data exec_code;
         exec_code.code_action = name{"appointpos"};
-        exec_code.packed_params = eosio::pack(std::make_tuple(community_acc, donor_position_id, donors, reason));
+        exec_code.packed_params = eosio::pack(std::make_tuple(created_community, donor_position_id, donors, reason));
         vector<exec_code_data> code_actions = {exec_code};
 
         //campaign contract account should be assigned to right holder of "appointpos"
         action(permission_level{_self, "active"_n},
                 "governance23"_n,
                 "execcode"_n,
-                std::make_tuple(community_acc, _self, appointpos_code_id, code_actions)).send();
+                std::make_tuple(created_community, _self, appointpos_code_id, code_actions)).send();
     }
 }
 
-// memo fixed format: donate-<donor_name>
 ACTION contracttmpl::transferfund(name community_account, asset quantity, string memo) {
-    check(campaign_table.exists(), "ERR::VERIFY_FAILED::campaign has not been init, please init it first");
+    check(campaign_table.exists(), "ERR::VERIFY_FAILED::campaign has not been initialized, please run fundtion initialize first.");
+
     auto campaign_info = campaign_table.get();
     bool isInFundExecutingPeriod = (campaign_info.fundingEndAt <= current_time_point().sec_since_epoch() < campaign_info.endAt);
-    check(isInFundExecutingPeriod, "ERR::VERIFY_FAILED::not in fund-executing period");
+    check(isInFundExecutingPeriod, "ERR::VERIFY_FAILED::not in fund-executing period.");
 
     require_auth(community_account);
 
@@ -191,10 +216,14 @@ ACTION contracttmpl::transferfund(name community_account, asset quantity, string
 
 ACTION contracttmpl::refund(name community_account, name revoked_account) {
     require_auth(community_account);
-    check(is_account(revoked_account), "ERR::VERIFY_FAILED::wrong donor account");
+    check(is_account(revoked_account), "ERR::VERIFY_FAILED::wrong donor account.");
+    
+    auto campaign_info = campaign_table.get();
+    bool isInFundingPeriod = (campaign_info.startAt <= current_time_point().sec_since_epoch() < campaign_info.fundingEndAt);
+    check(isInFundingPeriod, "ERR::VERIFY_FAILED::not in voting period.");
 
     auto dono_itr = donor_table.find(revoked_account.value);
-    check(dono_itr != donor_table.end(), "ERR::VERIFY_FAILED::account has not donated");
+    check(dono_itr != donor_table.end(), "ERR::VERIFY_FAILED::account has not donated.");
 
     asset refunded_quantity = dono_itr->token_quantity;
     string memo = "refund-" + revoked_account.to_string();
@@ -204,7 +233,6 @@ ACTION contracttmpl::refund(name community_account, name revoked_account) {
             "transfer"_n,
             std::make_tuple(_self, issuer_account, refunded_quantity, memo)).send();
     
-    // erase donor
     donor_table.erase(dono_itr);
 }
 
@@ -213,9 +241,7 @@ ACTION contracttmpl::initialize(name community_account,
                                 uint64_t start_at, 
                                 uint64_t funding_end_at, 
                                 uint64_t end_at) {
-
-    // if campaign_table has been init, do not init again
-    check((campaign_table.exists() == false), "ERR::VERIFY_FAILED::no re-executing initialization function");
+    check((campaign_table.exists() == false), "ERR::VERIFY_FAILED:: initialization function can only be executed once.");
     require_auth(_self);
     campaign_table.set(campaign{community_account, donor_position_id, start_at, funding_end_at, end_at}, _self);
 }
