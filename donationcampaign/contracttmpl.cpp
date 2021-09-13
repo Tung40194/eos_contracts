@@ -154,7 +154,7 @@ void contracttmpl::transfer(name from, name to, asset quantity, string memo) {
     const name created_community = campaign_info.communityAccount;
     uint64_t donor_pos_id = campaign_info.donorPositionId;
     //bool isInFundingPeriod = (campaign_info.startAt <= current_time_point().sec_since_epoch()) && (current_time_point().sec_since_epoch() < campaign_info.fundingEndAt);
-    check(isInFundingPeriod, "ERR::VERIFY_FAILED::not in voting period.");
+    //check(isInFundingPeriod, "ERR::VERIFY_FAILED::not in voting period.");
     
     const std::size_t first_break = memo.find("-");
     
