@@ -155,7 +155,7 @@ void contracttmpl::transfer(name from, name to, asset quantity, string memo) {
     auto campaign_info = campaign_table.get();
     const name created_community = campaign_info.communityAccount;
     uint64_t donor_pos_id = campaign_info.donorPositionId;
-    bool isInFundingPeriod = (campaign_info.startAt <= current_time_point().sec_since_epoch()) &&  (current_time_point().sec_since_epoch() < campaign_info.fundingEndAt);
+    bool isInFundingPeriod = (campaign_info.startAt <= current_time_point().sec_since_epoch()) && (current_time_point().sec_since_epoch() < campaign_info.fundingEndAt);
     
     
 
@@ -216,7 +216,7 @@ void contracttmpl::transfer(name from, name to, asset quantity, string memo) {
 ACTION contracttmpl::transferfund(name community_account, asset quantity, string memo) {
     check(campaign_table.exists(), "ERR::VERIFY_FAILED::campaign has not been initialized, please run initialize function first.");
     auto campaign_info = campaign_table.get();
-    bool isInFundExecutingPeriod = (campaign_info.fundingEndAt <= current_time_point().sec_since_epoch() < campaign_info.endAt);
+    bool isInFundExecutingPeriod = (campaign_info.fundingEndAt <= current_time_point().sec_since_epoch()) && (current_time_point().sec_since_epoch() < campaign_info.endAt);
     check(isInFundExecutingPeriod, "ERR::VERIFY_FAILED::not in fund-executing period.");
 
     require_auth(community_account);
@@ -233,7 +233,7 @@ ACTION contracttmpl::refund(name community_account, name revoked_account) {
 
     check(campaign_table.exists(), "ERR::VERIFY_FAILED::campaign has not been initialized, please run initialize function first.");
     auto campaign_info = campaign_table.get();
-    bool isInFundingPeriod = (campaign_info.startAt <= current_time_point().sec_since_epoch() < campaign_info.fundingEndAt);
+    bool isInFundingPeriod = (campaign_info.startAt <= current_time_point().sec_since_epoch()) && (current_time_point().sec_since_epoch() < campaign_info.fundingEndAt);
     check(isInFundingPeriod, "ERR::VERIFY_FAILED::not in voting period.");
 
     auto dono_itr = donor_table.find(revoked_account.value);
