@@ -11,6 +11,7 @@ const name governance = "community"_n;
 const name issuer_account = "vake.c"_n;
 const string donate_prefix = "donate";
 const string refund_prefix = "refund";
+const string transfer_prefix = "transfer";
 
 enum CodeTypeEnum {
     NORMAL = 0,
@@ -65,9 +66,9 @@ public:
     /*  Action   : transferfund
         Description: transfer and log fund information
         Parameters : quantity               - amount of token to be funded
-                     memo                   - donor's infor under a fixed format of: donate-<donor_name>
+                     receiver               - receiver account
         Return     : none */
-    ACTION transferfund(asset quantity, string memo);
+    ACTION transferfund(asset quantity, name receiver);
 
     /*  Action   : refund
         Description: refund if donors're revoked 
@@ -187,16 +188,8 @@ void contracttmpl::transfer(name from, name to, asset quantity, string memo) {
         auto getByCodeReferId = governance_v1_code.get_index<"by.refer.id"_n>();
         uint128_t appointpos_code = build_reference_id(donor_pos_id, CodeTypeEnum::POSITION_APPOINT);
         auto appointpos_code_itr = getByCodeReferId.find(appointpos_code);
-        eosio::print("\n>>>isNull: ", (appointpos_code_itr == getByCodeReferId.end()));
         uint64_t appointpos_code_id = appointpos_code_itr->code_id;
 
-        eosio::print("\n>>>governance: ", governance);
-        eosio::print("\n>>>created_community: ", created_community);
-        //eosio::print("\n>>>getByCodeReferId: ", getByCodeReferId);
-        eosio::print("\n>>>donor_pos_id: ", donor_pos_id);
-        //eosio::print("\n>>>appointpos_code_itr: ", appointpos_code_itr);
-        eosio::print("\n>>>appointpos_code_id: ", appointpos_code_id);
-        check(0==1, "#stop_debug");
         // packing appointpos action for execcode
         exec_code_data exec_code;
         exec_code.code_action = name{"appointpos"};
@@ -211,13 +204,14 @@ void contracttmpl::transfer(name from, name to, asset quantity, string memo) {
     }
 }
 
-ACTION contracttmpl::transferfund(asset quantity, string memo) {
+ACTION contracttmpl::transferfund(asset quantity, name receiver) {
     check(campaign_table.exists(), "ERR::VERIFY_FAILED::campaign has not been initialized, please run initialize function first.");
     auto campaign_info = campaign_table.get();
     bool isInFundExecutingPeriod = (campaign_info.fundingEndAt <= current_time_point().sec_since_epoch()) && (current_time_point().sec_since_epoch() < campaign_info.endAt);
     check(isInFundExecutingPeriod, "ERR::VERIFY_FAILED::not in fund-executing period.");
 
     require_auth(campaign_info.communityAccount);
+    string memo = transfer_prefix + "-" + receiver.to_string();
 
     action( permission_level{_self, "active"_n},
         "eosio.token"_n,
