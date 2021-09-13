@@ -64,18 +64,16 @@ public:
 
     /*  Action   : transferfund
         Description: transfer and log fund information
-        Parameters : community_account      - created community's account
-                     quantity               - amount of token to be funded
+        Parameters : quantity               - amount of token to be funded
                      memo                   - donor's infor under a fixed format of: donate-<donor_name>
         Return     : none */
-    ACTION transferfund(name community_account, asset quantity, string memo);
+    ACTION transferfund(asset quantity, string memo);
 
     /*  Action   : refund
         Description: refund if donors're revoked 
-        Parameters : community_account      - created community's account
-                     revoked_account        - revoked account
+        Parameters : revoked_account        - revoked account
         Return     : none */
-    ACTION refund(name community_account, name revoked_account);
+    ACTION refund(name revoked_account);
 
     /*  Action   : initialize
         Description: initialize campaign information. Executed only once before campaign starts
@@ -156,16 +154,8 @@ void contracttmpl::transfer(name from, name to, asset quantity, string memo) {
     const name created_community = campaign_info.communityAccount;
     uint64_t donor_pos_id = campaign_info.donorPositionId;
     bool isInFundingPeriod = (campaign_info.startAt <= current_time_point().sec_since_epoch()) && (current_time_point().sec_since_epoch() < campaign_info.fundingEndAt);
-    
-    
-
-    eosio::print("\n>>>campaign_info.startAt: ", campaign_info.startAt);
-    eosio::print("\n>>>campaign_info.fundingEndAt: ", campaign_info.fundingEndAt);
-    eosio::print("\n>>>campaign_info.endAt: ", campaign_info.endAt);
-    eosio::print("\n>>>current_time_point().sec_since_epoch(): ", current_time_point().sec_since_epoch());
-    eosio::print("\n>>>isInFundingPeriod: ", isInFundingPeriod);
-    check((0==1), "#stop_debug");
     check(isInFundingPeriod, "ERR::VERIFY_FAILED::not in voting period.");
+    
     const std::size_t first_break = memo.find("-");
     
     std::string memo_prefix = memo.substr(0, first_break);
@@ -213,13 +203,13 @@ void contracttmpl::transfer(name from, name to, asset quantity, string memo) {
     }
 }
 
-ACTION contracttmpl::transferfund(name community_account, asset quantity, string memo) {
+ACTION contracttmpl::transferfund(asset quantity, string memo) {
     check(campaign_table.exists(), "ERR::VERIFY_FAILED::campaign has not been initialized, please run initialize function first.");
     auto campaign_info = campaign_table.get();
     bool isInFundExecutingPeriod = (campaign_info.fundingEndAt <= current_time_point().sec_since_epoch()) && (current_time_point().sec_since_epoch() < campaign_info.endAt);
     check(isInFundExecutingPeriod, "ERR::VERIFY_FAILED::not in fund-executing period.");
 
-    require_auth(community_account);
+    require_auth(campaign_info.communityAccount);
 
     action( permission_level{_self, "active"_n},
         "eosio.token"_n,
@@ -227,14 +217,15 @@ ACTION contracttmpl::transferfund(name community_account, asset quantity, string
         std::make_tuple(_self, issuer_account, quantity, memo)).send();
 }
 
-ACTION contracttmpl::refund(name community_account, name revoked_account) {
-    require_auth(community_account);
+ACTION contracttmpl::refund(name revoked_account) {
     check(is_account(revoked_account), "ERR::VERIFY_FAILED::wrong donor account.");
 
     check(campaign_table.exists(), "ERR::VERIFY_FAILED::campaign has not been initialized, please run initialize function first.");
     auto campaign_info = campaign_table.get();
     bool isInFundingPeriod = (campaign_info.startAt <= current_time_point().sec_since_epoch()) && (current_time_point().sec_since_epoch() < campaign_info.fundingEndAt);
     check(isInFundingPeriod, "ERR::VERIFY_FAILED::not in voting period.");
+
+    require_auth(campaign_info.communityAccount);
 
     auto dono_itr = donor_table.find(revoked_account.value);
     check(dono_itr != donor_table.end(), "ERR::VERIFY_FAILED::account has not donated.");
@@ -268,7 +259,7 @@ ACTION contracttmpl::config(uint64_t donor_position_id,
     check(campaign_table.exists(), "ERR::VERIFY_FAILED::campaign has not been initialized, please run initialize function first.");
 
     auto campaign_info = campaign_table.get();
-    //require_auth(campaign_info.communityAccount);
+    require_auth(campaign_info.communityAccount);
 
     campaign_info.donorPositionId = donor_position_id;
     campaign_info.startAt = start_at;
