@@ -158,6 +158,12 @@ void contracttmpl::transfer(name from, name to, asset quantity, string memo) {
     bool isInFundingPeriod = (campaign_info.startAt <= current_time_point().sec_since_epoch() < campaign_info.fundingEndAt);
     check(isInFundingPeriod, "ERR::VERIFY_FAILED::not in voting period.");
     
+
+    eosio::print("\n>>>campaign_info.startAt: ", campaign_info.startAt);
+    eosio::print("\n>>>campaign_info.fundingEndAt: ", campaign_info.fundingEndAt);
+    eosio::print("\n>>>campaign_info.endAt: ", campaign_info.endAt);
+    eosio::print("\n>>>current_time_point().sec_since_epoch(): ", current_time_point().sec_since_epoch());
+    check((0==1), "#stop_debug");
     const std::size_t first_break = memo.find("-");
     check((first_break != std::string::npos), "ERR::VERIFY_FAILED::unsupported memo format.");
     std::string donor_str = memo.substr(first_break + 1);
