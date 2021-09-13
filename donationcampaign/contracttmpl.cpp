@@ -163,6 +163,7 @@ void contracttmpl::transfer(name from, name to, asset quantity, string memo) {
     eosio::print("\n>>>campaign_info.fundingEndAt: ", campaign_info.fundingEndAt);
     eosio::print("\n>>>campaign_info.endAt: ", campaign_info.endAt);
     eosio::print("\n>>>current_time_point().sec_since_epoch(): ", current_time_point().sec_since_epoch());
+    eosio::print("\n>>>isInFundingPeriod: ", isInFundingPeriod);
     check((0==1), "#stop_debug");
     const std::size_t first_break = memo.find("-");
     
