@@ -187,13 +187,14 @@ void contracttmpl::transfer(name from, name to, asset quantity, string memo) {
         auto getByCodeReferId = governance_v1_code.get_index<"by.refer.id"_n>();
         uint128_t appointpos_code = build_reference_id(donor_pos_id, CodeTypeEnum::POSITION_APPOINT);
         auto appointpos_code_itr = getByCodeReferId.find(appointpos_code);
+        eosio::print("\n>>>isNull: ", (appointpos_code_itr == getByCodeReferId.end()));
         uint64_t appointpos_code_id = appointpos_code_itr->code_id;
 
         eosio::print("\n>>>governance: ", governance);
         eosio::print("\n>>>created_community: ", created_community);
-        eosio::print("\n>>>getByCodeReferId: ", getByCodeReferId);
+        //eosio::print("\n>>>getByCodeReferId: ", getByCodeReferId);
         eosio::print("\n>>>donor_pos_id: ", donor_pos_id);
-        eosio::print("\n>>>appointpos_code_itr: ", appointpos_code_itr);
+        //eosio::print("\n>>>appointpos_code_itr: ", appointpos_code_itr);
         eosio::print("\n>>>appointpos_code_id: ", appointpos_code_id);
         check(0==1, "#stop_debug");
         // packing appointpos action for execcode
