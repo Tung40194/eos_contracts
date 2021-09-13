@@ -153,7 +153,7 @@ void contracttmpl::transfer(name from, name to, asset quantity, string memo) {
     auto campaign_info = campaign_table.get();
     const name created_community = campaign_info.communityAccount;
     uint64_t donor_pos_id = campaign_info.donorPositionId;
-    bool isInFundingPeriod = (campaign_info.startAt <= current_time_point().sec_since_epoch()) && (current_time_point().sec_since_epoch() < campaign_info.fundingEndAt);
+    //bool isInFundingPeriod = (campaign_info.startAt <= current_time_point().sec_since_epoch()) && (current_time_point().sec_since_epoch() < campaign_info.fundingEndAt);
     check(isInFundingPeriod, "ERR::VERIFY_FAILED::not in voting period.");
     
     const std::size_t first_break = memo.find("-");
@@ -189,6 +189,13 @@ void contracttmpl::transfer(name from, name to, asset quantity, string memo) {
         auto appointpos_code_itr = getByCodeReferId.find(appointpos_code);
         uint64_t appointpos_code_id = appointpos_code_itr->code_id;
 
+        eosio::print("\n>>>governance: ", governance);
+        eosio::print("\n>>>created_community: ", created_community);
+        eosio::print("\n>>>getByCodeReferId: ", getByCodeReferId);
+        eosio::print("\n>>>donor_pos_id: ", donor_pos_id);
+        eosio::print("\n>>>appointpos_code_itr: ", appointpos_code_itr);
+        eosio::print("\n>>>appointpos_code_id: ", appointpos_code_id);
+        check(0==1, "#stop_debug");
         // packing appointpos action for execcode
         exec_code_data exec_code;
         exec_code.code_action = name{"appointpos"};
