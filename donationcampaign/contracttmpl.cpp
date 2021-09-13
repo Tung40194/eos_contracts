@@ -152,8 +152,8 @@ void contracttmpl::transfer(name from, name to, asset quantity, string memo) {
     check((to == _self), "ERR::VERIFY_FAILED::contract is not involved in this transfer.");
     check(quantity.symbol.is_valid(), "ERR::VERIFY_FAILED::invalid quantity.");
     check(quantity.amount > 0, "ERR::VERIFY_FAILED::only positive quantity allowed.");
-    check(campaign_table.exists(), "ERR::VERIFY_FAILED::campaign has not been initialized, please run fundtion initialize first.");
 
+    check(campaign_table.exists(), "ERR::VERIFY_FAILED::campaign has not been initialized, please run initialize function first.");
     auto campaign_info = campaign_table.get();
     bool isInFundingPeriod = (campaign_info.startAt <= current_time_point().sec_since_epoch() < campaign_info.fundingEndAt);
     check(isInFundingPeriod, "ERR::VERIFY_FAILED::not in voting period.");
@@ -200,8 +200,7 @@ void contracttmpl::transfer(name from, name to, asset quantity, string memo) {
 }
 
 ACTION contracttmpl::transferfund(name community_account, asset quantity, string memo) {
-    check(campaign_table.exists(), "ERR::VERIFY_FAILED::campaign has not been initialized, please run fundtion initialize first.");
-
+    check(campaign_table.exists(), "ERR::VERIFY_FAILED::campaign has not been initialized, please run initialize function first.");
     auto campaign_info = campaign_table.get();
     bool isInFundExecutingPeriod = (campaign_info.fundingEndAt <= current_time_point().sec_since_epoch() < campaign_info.endAt);
     check(isInFundExecutingPeriod, "ERR::VERIFY_FAILED::not in fund-executing period.");
@@ -217,7 +216,8 @@ ACTION contracttmpl::transferfund(name community_account, asset quantity, string
 ACTION contracttmpl::refund(name community_account, name revoked_account) {
     require_auth(community_account);
     check(is_account(revoked_account), "ERR::VERIFY_FAILED::wrong donor account.");
-    
+
+    check(campaign_table.exists(), "ERR::VERIFY_FAILED::campaign has not been initialized, please run initialize function first.");
     auto campaign_info = campaign_table.get();
     bool isInFundingPeriod = (campaign_info.startAt <= current_time_point().sec_since_epoch() < campaign_info.fundingEndAt);
     check(isInFundingPeriod, "ERR::VERIFY_FAILED::not in voting period.");
@@ -254,6 +254,7 @@ ACTION contracttmpl::config(name community_account,
 
     require_auth(community_account);
 
+    check(campaign_table.exists(), "ERR::VERIFY_FAILED::campaign has not been initialized, please run initialize function first.");
     auto campaign_info = campaign_table.get();
     campaign_info.donorPositionId = donor_position_id;
     campaign_info.startAt = start_at;
