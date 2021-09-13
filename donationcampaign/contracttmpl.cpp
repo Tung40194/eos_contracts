@@ -155,7 +155,7 @@ void contracttmpl::transfer(name from, name to, asset quantity, string memo) {
     auto campaign_info = campaign_table.get();
     const name created_community = campaign_info.communityAccount;
     uint64_t donor_pos_id = campaign_info.donorPositionId;
-    bool isInFundingPeriod = (campaign_info.startAt <= current_time_point().sec_since_epoch()) &&  (current_time_point().sec_since_epoch() < campaign_info.fundingEndAt);
+    bool isInFundingPeriod = (campaign_info.startAt <= current_time_point().sec_since_epoch() < campaign_info.fundingEndAt);
     
     
 
