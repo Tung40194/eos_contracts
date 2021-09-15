@@ -260,7 +260,7 @@ ACTION contracttmpl::config(uint64_t donor_position_id,
 
     check(campaign_table.exists(), "ERR::VERIFY_FAILED::campaign has not been initialized, please run initialize function first.");
     eosio::print( "hi, this is debug code");
-    eosio::print( "hi, this is debug code2");
+    eosio::print( "\nhi, this is debug code2");
     auto campaign_info = campaign_table.get();
     //require_auth(campaign_info.communityAccount);
 
