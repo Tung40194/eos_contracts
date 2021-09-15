@@ -261,7 +261,7 @@ ACTION contracttmpl::config(uint64_t donor_position_id,
     check(campaign_table.exists(), "ERR::VERIFY_FAILED::campaign has not been initialized, please run initialize function first.");
 
     auto campaign_info = campaign_table.get();
-    require_auth(campaign_info.communityAccount);
+    //require_auth(campaign_info.communityAccount);
 
     campaign_info.donorPositionId = donor_position_id;
     campaign_info.startAt = start_at;
