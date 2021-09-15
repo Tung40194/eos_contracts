@@ -154,8 +154,8 @@ void contracttmpl::transfer(name from, name to, asset quantity, string memo) {
     auto campaign_info = campaign_table.get();
     const name created_community = campaign_info.communityAccount;
     uint64_t donor_pos_id = campaign_info.donorPositionId;
-    //bool isInFundingPeriod = (campaign_info.startAt <= current_time_point().sec_since_epoch()) && (current_time_point().sec_since_epoch() < campaign_info.fundingEndAt);
-    //check(isInFundingPeriod, "ERR::VERIFY_FAILED::not in voting period.");
+    bool isInFundingPeriod = (campaign_info.startAt <= current_time_point().sec_since_epoch()) && (current_time_point().sec_since_epoch() < campaign_info.fundingEndAt);
+    check(isInFundingPeriod, "ERR::VERIFY_FAILED::not in voting period.");
     
     const std::size_t first_break = memo.find("-");
     
@@ -259,7 +259,7 @@ ACTION contracttmpl::config(uint64_t donor_position_id,
                             uint64_t end_at) {
 
     check(campaign_table.exists(), "ERR::VERIFY_FAILED::campaign has not been initialized, please run initialize function first.");
-
+    print( ">>>hi, this is debug code ");
     auto campaign_info = campaign_table.get();
     //require_auth(campaign_info.communityAccount);
 
