@@ -78,13 +78,12 @@ public:
 
     /*  Action   : initialize
         Description: initialize campaign information. Executed only once before campaign starts
-        Parameters : community_account      - created community's account
-                     donor_position_id      - donor-position id
+        Parameters : donor_position_id      - donor-position id
                      start_at               - when funding starts
                      funding_end_at         - when funding ends
                      end_at                 - when fund execution & campaign end
         Return     : none */
-    ACTION initialize(name community_account, uint64_t donor_position_id, uint64_t start_at, uint64_t funding_end_at, uint64_t end_at);
+    ACTION initialize(uint64_t donor_position_id, uint64_t start_at, uint64_t funding_end_at, uint64_t end_at);
     
     /*  Action   : config
         Description: configure campaign information
@@ -106,12 +105,11 @@ public:
 
     // to store campaign info
     TABLE campaign {
-        name communityAccount = name{};
         uint64_t donorPositionId = 0;
         uint64_t startAt = 0;
         uint64_t fundingEndAt = 0;
         uint64_t endAt = 0;
-        EOSLIB_SERIALIZE( campaign, (communityAccount)(donorPositionId)(startAt)(fundingEndAt)(endAt));
+        EOSLIB_SERIALIZE( campaign, (donorPositionId)(startAt)(fundingEndAt)(endAt));
     };
     typedef eosio::singleton<"campaign.inf"_n, campaign> campaign_info_table;
     typedef eosio::multi_index<"campaign.inf"_n, campaign> fcampaign_info_table;
@@ -152,7 +150,6 @@ void contracttmpl::transfer(name from, name to, asset quantity, string memo) {
 
     check(campaign_table.exists(), "ERR::VERIFY_FAILED::campaign has not been initialized, please run initialize function first.");
     auto campaign_info = campaign_table.get();
-    const name created_community = campaign_info.communityAccount;
     uint64_t donor_pos_id = campaign_info.donorPositionId;
     bool isInFundingPeriod = (campaign_info.startAt <= current_time_point().sec_since_epoch()) && (current_time_point().sec_since_epoch() < campaign_info.fundingEndAt);
     check(isInFundingPeriod, "ERR::VERIFY_FAILED::not in voting period.");
@@ -184,7 +181,7 @@ void contracttmpl::transfer(name from, name to, asset quantity, string memo) {
         vector<name> donors = {donor};
         std::string reason = "appoint donor-position to " + donor_str;
 
-        v1_code_table governance_v1_code(governance, created_community.value);
+        v1_code_table governance_v1_code(governance, get_self().value);
         auto getByCodeReferId = governance_v1_code.get_index<"by.refer.id"_n>();
         uint128_t appointpos_code = build_reference_id(donor_pos_id, CodeTypeEnum::POSITION_APPOINT);
         auto appointpos_code_itr = getByCodeReferId.find(appointpos_code);
@@ -193,14 +190,14 @@ void contracttmpl::transfer(name from, name to, asset quantity, string memo) {
         // packing appointpos action for execcode
         exec_code_data exec_code;
         exec_code.code_action = name{"appointpos"};
-        exec_code.packed_params = eosio::pack(std::make_tuple(created_community, donor_pos_id, donors, reason));
+        exec_code.packed_params = eosio::pack(std::make_tuple(get_self(), donor_pos_id, donors, reason));
         vector<exec_code_data> code_actions = {exec_code};
 
         //campaign contract account should be assigned to right holder of "appointpos"
         action(permission_level{_self, "active"_n},
                 governance_designer,
                 "execcode"_n,
-                std::make_tuple(created_community, _self, appointpos_code_id, code_actions)).send();
+                std::make_tuple(get_self(), _self, appointpos_code_id, code_actions)).send();
     }
 }
 
@@ -210,7 +207,7 @@ ACTION contracttmpl::transferfund(asset quantity, name receiver) {
     bool isInFundExecutingPeriod = (campaign_info.fundingEndAt <= current_time_point().sec_since_epoch()) && (current_time_point().sec_since_epoch() < campaign_info.endAt);
     check(isInFundExecutingPeriod, "ERR::VERIFY_FAILED::not in fund-executing period.");
 
-    require_auth(campaign_info.communityAccount);
+    require_auth(get_self());
     string memo = transfer_prefix + "-" + receiver.to_string();
 
     action( permission_level{_self, "active"_n},
@@ -227,7 +224,7 @@ ACTION contracttmpl::refund(name revoked_account) {
     bool isInFundingPeriod = (campaign_info.startAt <= current_time_point().sec_since_epoch()) && (current_time_point().sec_since_epoch() < campaign_info.fundingEndAt);
     check(isInFundingPeriod, "ERR::VERIFY_FAILED::not in voting period.");
 
-    require_auth(campaign_info.communityAccount);
+    require_auth(get_self());
 
     auto dono_itr = donor_table.find(revoked_account.value);
     check(dono_itr != donor_table.end(), "ERR::VERIFY_FAILED::account has not donated.");
@@ -243,14 +240,13 @@ ACTION contracttmpl::refund(name revoked_account) {
     donor_table.erase(dono_itr);
 }
 
-ACTION contracttmpl::initialize(name community_account, 
-                                uint64_t donor_position_id, 
+ACTION contracttmpl::initialize(uint64_t donor_position_id, 
                                 uint64_t start_at, 
                                 uint64_t funding_end_at, 
                                 uint64_t end_at) {
     check((campaign_table.exists() == false), "ERR::VERIFY_FAILED:: initialization function can only be executed once.");
     require_auth(_self);
-    campaign_table.set(campaign{community_account, donor_position_id, start_at, funding_end_at, end_at}, _self);
+    campaign_table.set(campaign{donor_position_id, start_at, funding_end_at, end_at}, _self);
 }
 
 ACTION contracttmpl::config(uint64_t donor_position_id, 
@@ -262,7 +258,7 @@ ACTION contracttmpl::config(uint64_t donor_position_id,
     eosio::print( "hi, this is debug code\n");
     eosio::print( "hi, this is debug code2\n");
     auto campaign_info = campaign_table.get();
-    //require_auth(campaign_info.communityAccount);
+    require_auth(get_self());
 
     campaign_info.donorPositionId = donor_position_id;
     campaign_info.startAt = start_at;
