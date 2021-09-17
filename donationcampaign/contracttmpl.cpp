@@ -9,6 +9,7 @@ const symbol donate_symbol = symbol(symbol_code("CAT"), 4);
 const name governance_designer = "governance23"_n;
 const name governance = "community"_n;
 const name issuer_account = "vake.c"_n;
+const name token_contract="vake.t"_n;
 const string donate_prefix = "donate";
 const string refund_prefix = "refund";
 const string transfer_prefix = "transfer";
@@ -79,20 +80,38 @@ public:
     /*  Action   : initialize
         Description: initialize campaign information. Executed only once before campaign starts
         Parameters : donor_position_id      - donor-position id
-                     start_at               - when funding starts
+                     start_at               - when campaign starts
+                     funding_start_at       - when funding starts
                      funding_end_at         - when funding ends
-                     end_at                 - when fund execution & campaign end
+                     exec_start_at          - when fund-executing starts
+                     exec_end_at            - when fund-executing ends
+                     end_at                 - when campaign ends
         Return     : none */
-    ACTION initialize(uint64_t donor_position_id, uint64_t start_at, uint64_t funding_end_at, uint64_t end_at);
+    ACTION initialize(uint64_t donor_position_id, 
+                        uint64_t start_at, 
+                        uint64_t funding_start_at, 
+                        uint64_t funding_end_at, 
+                        uint64_t exec_start_at, 
+                        uint64_t exec_end_at, 
+                        uint64_t end_at);
     
     /*  Action   : config
         Description: configure campaign information
         Parameters : donor_position_id      - donor-position id
-                     start_at               - when funding starts
+                     start_at               - when campaign starts
+                     funding_start_at       - when funding starts
                      funding_end_at         - when funding ends
-                     end_at                 - when fund execution & campaign end
+                     exec_start_at          - when fund-executing starts
+                     exec_end_at            - when fund-executing ends
+                     end_at                 - when campaign ends
         Return     : none */
-    ACTION config(uint64_t donor_position_id, uint64_t start_at, uint64_t funding_end_at, uint64_t end_at);
+    ACTION config(uint64_t donor_position_id, 
+                    uint64_t start_at, 
+                    uint64_t funding_start_at, 
+                    uint64_t funding_end_at, 
+                    uint64_t exec_start_at, 
+                    uint64_t exec_end_at, 
+                    uint64_t end_at);
 
     // to record donation info for donor-refund if revoked
     TABLE donation_info {
@@ -107,9 +126,12 @@ public:
     TABLE campaign {
         uint64_t donorPositionId = 0;
         uint64_t startAt = 0;
+        uint64_t fundingStartAt = 0;
         uint64_t fundingEndAt = 0;
+        uint64_t executionStartAt = 0;
+        uint64_t executionEndAt = 0;
         uint64_t endAt = 0;
-        EOSLIB_SERIALIZE( campaign, (donorPositionId)(startAt)(fundingEndAt)(endAt));
+        EOSLIB_SERIALIZE( campaign, (donorPositionId)(startAt)(fundingStartAt)(fundingEndAt)(executionStartAt)(executionEndAt)(endAt));
     };
     typedef eosio::singleton<"campaign.inf"_n, campaign> campaign_info_table;
     typedef eosio::multi_index<"campaign.inf"_n, campaign> fcampaign_info_table;
@@ -210,7 +232,7 @@ ACTION contracttmpl::transferfund(asset quantity, name receiver) {
     string memo = transfer_prefix + "-" + receiver.to_string();
 
     action( permission_level{_self, "active"_n},
-        "eosio.token"_n,
+        token_contract,
         "transfer"_n,
         std::make_tuple(_self, issuer_account, quantity, memo)).send();
 }
@@ -232,36 +254,44 @@ ACTION contracttmpl::refund(name revoked_account) {
     string memo = refund_prefix + "-" + revoked_account.to_string();
     
     action( permission_level{_self, "active"_n},
-            "eosio.token"_n,
+            token_contract,
             "transfer"_n,
             std::make_tuple(_self, issuer_account, refunded_quantity, memo)).send();
     
     donor_table.erase(dono_itr);
 }
-
+        
 ACTION contracttmpl::initialize(uint64_t donor_position_id, 
                                 uint64_t start_at, 
+                                uint64_t funding_start_at, 
                                 uint64_t funding_end_at, 
+                                uint64_t exec_start_at, 
+                                uint64_t exec_end_at, 
                                 uint64_t end_at) {
+
     check((campaign_table.exists() == false), "ERR::VERIFY_FAILED:: initialization function can only be executed once.");
     require_auth(_self);
-    campaign_table.set(campaign{donor_position_id, start_at, funding_end_at, end_at}, _self);
+    campaign_table.set(campaign{donor_position_id, start_at, funding_start_at, funding_end_at, exec_start_at, exec_end_at, end_at}, _self);
 }
 
 ACTION contracttmpl::config(uint64_t donor_position_id, 
                             uint64_t start_at, 
+                            uint64_t funding_start_at, 
                             uint64_t funding_end_at, 
+                            uint64_t exec_start_at, 
+                            uint64_t exec_end_at, 
                             uint64_t end_at) {
 
     check(campaign_table.exists(), "ERR::VERIFY_FAILED::campaign has not been initialized, please run initialize function first.");
-    eosio::print( "hi, this is debug code\n");
-    eosio::print( "hi, this is debug code2\n");
     auto campaign_info = campaign_table.get();
     require_auth(get_self());
 
     campaign_info.donorPositionId = donor_position_id;
     campaign_info.startAt = start_at;
+    campaign_info.fundingStartAt = funding_start_at;
     campaign_info.fundingEndAt = funding_end_at;
+    campaign_info.executionStartAt = exec_start_at;
+    campaign_info.executionEndAt = exec_end_at;
     campaign_info.endAt = end_at;
     campaign_table.set(campaign_info, _self);
 }
