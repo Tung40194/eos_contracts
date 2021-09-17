@@ -193,7 +193,6 @@ void contracttmpl::transfer(name from, name to, asset quantity, string memo) {
         exec_code.packed_params = eosio::pack(std::make_tuple(get_self(), donor_pos_id, donors, reason));
         vector<exec_code_data> code_actions = {exec_code};
 
-        //campaign contract account should be assigned to right holder of "appointpos"
         action(permission_level{_self, "active"_n},
                 governance_designer,
                 "execcode"_n,
