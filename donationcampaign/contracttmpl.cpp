@@ -50,12 +50,12 @@ public:
         campaign_table(_self, _self.value) {
             // constructor
             eosio::print(">>> running contructor\n");
-            if (test_table.exist() == false) {
+            if (test_table.exists() == false) {
                 eosio::print(">>> initializing campaign title table\n");
                 auto ttbl = test_table.get();
                 ttbl.title = "campaign title";
                 ttbl.description  = "campaign description";
-                test_table.set(ttbl, self);
+                test_table.set(ttbl, _self);
             } else {
                 eosio::print(">>> campaign title table eixsts, do nothing\n");
                 // doing nothing
