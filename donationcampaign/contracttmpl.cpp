@@ -49,6 +49,7 @@ public:
         donor_table(_self, _self.value), 
         campaign_table(_self, _self.value) {
             // constructor
+            eosio::print(">>> running contructor\n");
         }
 
     static inline uint128_t build_reference_id(uint64_t reference_id, uint64_t type) {
@@ -112,6 +113,8 @@ public:
                     uint64_t exec_start_at, 
                     uint64_t exec_end_at, 
                     uint64_t end_at);
+
+    ACTION test();
 
     // to record donation info for donor-refund if revoked
     TABLE donation_info {
@@ -297,6 +300,10 @@ ACTION contracttmpl::config(uint64_t donor_position_id,
     campaign_table.set(campaign_info, _self);
 }
 
+ACTION contracttmpl::test() {
+    eosio::print(">>> testing\n");
+}
+
 #define EOSIO_ABI_CUSTOM(TYPE, MEMBERS)                                                                                      \
     extern "C"                                                                                                               \
     {                                                                                                                        \
@@ -318,4 +325,4 @@ ACTION contracttmpl::config(uint64_t donor_position_id,
         }                                                                                                                    \
     }
 
-EOSIO_ABI_CUSTOM(contracttmpl, (transfer)(transferfund)(refund)(initialize)(config))
+EOSIO_ABI_CUSTOM(contracttmpl, (transfer)(transferfund)(refund)(initialize)(config)(test))
