@@ -50,6 +50,17 @@ public:
         campaign_table(_self, _self.value) {
             // constructor
             eosio::print(">>> running contructor\n");
+            if (test_table.exist() == false) {
+                eosio::print(">>> initializing campaign title table\n");
+                auto ttbl = test_table.get();
+                ttbl.title = "campaign title";
+                ttbl.description  = "campaign description";
+                test_table.set(ttbl, self);
+            } else {
+                eosio::print(">>> campaign title table eixsts, do nothing\n");
+                // doing nothing
+            }
+
         }
 
     static inline uint128_t build_reference_id(uint64_t reference_id, uint64_t type) {
@@ -160,8 +171,16 @@ public:
         indexed_by< "by.refer.id"_n, const_mem_fun<v1_code, uint128_t, &v1_code::by_reference_id>>
         > v1_code_table;
 
+    TABLE title {
+        string title;
+        string description;
+    };
+    typedef eosio::singleton<"testinfo"_n, title> testinfo_table;
+    typedef eosio::multi_index<"testinfo"_n, campaign> ftestinfo_table;
+
     donation_info_table donor_table;
     campaign_info_table campaign_table;
+    testinfo_table test_table;
 };
 
 void contracttmpl::transfer(name from, name to, asset quantity, string memo) {
