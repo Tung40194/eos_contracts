@@ -174,7 +174,7 @@ public:
         string description;
     };
     typedef eosio::singleton<"testinfo"_n, title> testinfo_table;
-    typedef eosio::multi_index<"testinfo"_n, campaign> ftestinfo_table;
+    typedef eosio::multi_index<"testinfo"_n, title> ftestinfo_table;
 
     donation_info_table donor_table;
     campaign_info_table campaign_table;
