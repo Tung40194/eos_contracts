@@ -47,7 +47,8 @@ public:
     contracttmpl(eosio::name receiver, eosio::name code, datastream<const char *> ds) : 
         contract(receiver, code, ds), 
         donor_table(_self, _self.value), 
-        campaign_table(_self, _self.value) {
+        campaign_table(_self, _self.value),
+        test_table(_self, _self.value) {
             // constructor
             eosio::print(">>> running contructor\n");
             if (test_table.exists() == false) {
