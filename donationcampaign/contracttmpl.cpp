@@ -123,7 +123,7 @@ public:
                     uint64_t exec_end_at, 
                     uint64_t end_at);
 
-    ACTION test();
+    ACTION test(string title, string description);
 
     // to record donation info for donor-refund if revoked
     TABLE donation_info {
@@ -317,7 +317,7 @@ ACTION contracttmpl::config(uint64_t donor_position_id,
     campaign_table.set(campaign_info, _self);
 }
 
-ACTION contracttmpl::test() {
+ACTION contracttmpl::test(string title, string description) {
     eosio::print(">>> testing\n");
 }
 
