@@ -48,16 +48,9 @@ public:
         contract(receiver, code, ds), 
         donor_table(_self, _self.value), 
         campaign_table(_self, _self.value),
-        test_table(_self, _self.value) {
+        test_modify_table(_self, _self.value) {
             // constructor
             eosio::print(">>> running contructor\n");
-            if (test_table.exists() == false) {
-                eosio::print(">>> initializing campaign title table\n");
-                test_table.set(title{"campaign title", "campaign description"}, _self);
-            } else {
-                eosio::print(">>> campaign title table eixsts, do nothing\n");
-                // doing nothing
-            }
 
         }
 
@@ -123,7 +116,8 @@ public:
                     uint64_t exec_end_at, 
                     uint64_t end_at);
 
-    ACTION test(string title, string description);
+    ACTION test();
+    ACTION init();
 
     // to record donation info for donor-refund if revoked
     TABLE donation_info {
@@ -169,16 +163,17 @@ public:
         indexed_by< "by.refer.id"_n, const_mem_fun<v1_code, uint128_t, &v1_code::by_reference_id>>
         > v1_code_table;
 
-    TABLE title {
-        string title;
-        string description;
+    TABLE testmod {
+        uint64_t id;
+        uint64_t amount;
+        uint64_t primary_key() const { return id; }
+        EOSLIB_SERIALIZE( testmod, (id)(amount));
     };
-    typedef eosio::singleton<"testinfo"_n, title> testinfo_table;
-    typedef eosio::multi_index<"testinfo"_n, title> ftestinfo_table;
+    typedef eosio::multi_index<"test.mod"_n, testmod> test_mod_table;
 
     donation_info_table donor_table;
     campaign_info_table campaign_table;
-    testinfo_table test_table;
+    test_mod_table test_modify_table;
 };
 
 void contracttmpl::transfer(name from, name to, asset quantity, string memo) {
@@ -317,8 +312,35 @@ ACTION contracttmpl::config(uint64_t donor_position_id,
     campaign_table.set(campaign_info, _self);
 }
 
-ACTION contracttmpl::test(string title, string description) {
-    eosio::print(">>> testing\n");
+ACTION contracttmpl::test() {
+    auto itr = test_modify_table.find(2);
+    check(itr != test_modify_table.end(), "ERR::VERIFY_FAILED::account has not donated or been revoked.");
+
+    eosio::print("\nasset number 2 before modified: ", itr->amount);
+    test_modify_table.modify(itr, get_self(), [&](auto& row) {
+        row.amount -= 1;
+    });
+
+    eosio::print("\nasset number 2 after modified: ", itr->amount);
+}
+
+ACTION contracttmpl::init() {
+
+    test_modify_table.emplace(get_self(), [&](auto &row) {
+        row.id = 1;
+        row.amount = 10;
+    });
+
+    test_modify_table.emplace(get_self(), [&](auto &row) {
+        row.id = 2;
+        row.amount = 20;
+    });
+
+    test_modify_table.emplace(get_self(), [&](auto &row) {
+        row.id = 3;
+        row.amount = 30;
+    });
+            
 }
 
 #define EOSIO_ABI_CUSTOM(TYPE, MEMBERS)                                                                                      \
@@ -342,4 +364,4 @@ ACTION contracttmpl::test(string title, string description) {
         }                                                                                                                    \
     }
 
-EOSIO_ABI_CUSTOM(contracttmpl, (transfer)(transferfund)(refund)(initialize)(config)(test))
+EOSIO_ABI_CUSTOM(contracttmpl, (transfer)(transferfund)(refund)(initialize)(config)(test)(init))
